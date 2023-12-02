@@ -20,7 +20,7 @@ colored = "2.0.0"
 criterion-cycles-per-byte = "0.4.0"
 criterion-perf-events = "0.3.0"
 fnv = "1.0.7"
-aoc_macro = { path = "../aoc_macro" }
+aoc_macro = { path = "./aoc_macro" }
 itertools = "0.10.5"
 # perfcnt = "0.8.0"
 # rayon = "1.7.0"
