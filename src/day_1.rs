@@ -5,7 +5,7 @@ const NINE: u8 = 57;
 
 fn str_to_int(s: &str) -> Option<u8> {
     let b = s[..1].as_bytes()[0];
-    if b >= ZERO && b <= NINE {
+    if (ZERO..=NINE).contains(&b) {
         return Some(b - ZERO);
     }
     if s.len() >= 3 {
@@ -44,7 +44,7 @@ fn str_to_int(s: &str) -> Option<u8> {
             return Some(8);
         }
     }
-    return None;
+    None
 }
 
 pub fn generator(input: &str) -> &str {
@@ -53,10 +53,9 @@ pub fn generator(input: &str) -> &str {
 pub fn part1(input: &str) -> Int {
     input
         .lines()
-        .into_iter()
         .map(|line| {
             let iter = line.bytes().filter_map(|v| {
-                if (v >= ZERO) && (v <= NINE) {
+                if (ZERO..=NINE).contains(&v) {
                     Some(v - ZERO)
                 } else {
                     None
@@ -72,7 +71,6 @@ pub fn part1(input: &str) -> Int {
 pub fn part2(input: &str) -> Int {
     input
         .lines()
-        .into_iter()
         .map(|line| {
             let mut vec = vec![];
             for i in 0..line.len() {
@@ -81,7 +79,7 @@ pub fn part2(input: &str) -> Int {
                     vec.push(v);
                 }
             }
-            let first = vec.iter().next().unwrap();
+            let first = vec.first().unwrap();
             let last = vec.iter().last().unwrap();
             (first * 10 + last) as Int
         })
@@ -101,7 +99,7 @@ mod tests {
             pqr3stu8vwx\n\
             a1b2c3d4e5f\n\
             treb7uchet";
-        assert_eq!(part1(&generator(example)), 142);
+        assert_eq!(part1(generator(example)), 142);
 
         let example2 = "two1nine\n\
             eightwothree\n\
@@ -110,6 +108,6 @@ mod tests {
             4nineeightseven2\n\
             zoneight234\n\
             7pqrstsixteen";
-        assert_eq!(part2(&generator(example2)), 281);
+        assert_eq!(part2(generator(example2)), 281);
     }
 }

@@ -7,7 +7,8 @@ where
     T: FromStr + Debug,
     T::Err: std::fmt::Debug,
 {
-    line.split(delimiter).map(|v| v.parse().expect("can't parse value {v:?}"))
+    line.split(delimiter)
+        .map(|v| v.parse().expect("can't parse value {v:?}"))
 }
 
 #[inline(always)]
@@ -149,7 +150,11 @@ impl StrConversion for str {
         T::Err: std::fmt::Debug,
     {
         self.lines()
-            .map(|l| l.split_ascii_whitespace().map(|v| v.parse().expect("can't parse value {v:?}")).collect())
+            .map(|l| {
+                l.split_ascii_whitespace()
+                    .map(|v| v.parse().expect("can't parse value {v:?}"))
+                    .collect()
+            })
             .collect::<Vec<Vec<T>>>()
     }
 
@@ -163,7 +168,10 @@ impl StrConversion for str {
         self.trim()
             .lines()
             .map(|l| {
-                l.trim_start().split_ascii_whitespace().map(|v| v.parse().expect("can't parse value {v:?}")).collect()
+                l.trim_start()
+                    .split_ascii_whitespace()
+                    .map(|v| v.parse().expect("can't parse value {v:?}"))
+                    .collect()
             })
             .collect()
     }

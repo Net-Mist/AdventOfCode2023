@@ -1,12 +1,12 @@
-pub fn generator(input: &str) -> Vec<i32> {
-    input.lines().map(|n| n.parse().unwrap()).collect()
+pub fn generator(input: &str) -> &str {
+    input
 }
 
-pub fn part1(input: &[i32]) -> usize {
+pub fn part1(input: &str) -> usize {
     1
 }
 
-pub fn part2(input: &[i32]) -> usize {
+pub fn part2(input: &str) -> usize {
     1
 }
 
@@ -25,7 +25,7 @@ mod tests {
         up 3\n\
         down 8\n\
         forward 2";
-        assert_eq!(part1(&generator(example)), 150);
-        // assert_eq!(part2(&generator(example)), 900);
+        assert_eq!(part1(&generator(example)), 1);
+        assert_eq!(part2(&generator(example)), 1);
     }
 }

@@ -17,13 +17,13 @@ pub fn generator(input: &str) -> Vec<Game> {
         .lines()
         .map(|line| {
             let (game, sets) = line.split_once(": ").unwrap();
-            let id = (&game[5..]).parse().unwrap();
+            let id = game[5..].parse().unwrap();
             let colors = sets
                 .split("; ")
                 .map(|set| {
                     let mut colors = Colors::default();
                     for ind_color in set.split(", ") {
-                        let (n, color_str) = ind_color.split_once(" ").unwrap();
+                        let (n, color_str) = ind_color.split_once(' ').unwrap();
                         if color_str == "blue" {
                             colors.blue = n.parse().unwrap();
                         }
@@ -42,9 +42,9 @@ pub fn generator(input: &str) -> Vec<Game> {
         .collect()
 }
 
-pub fn part1(input: &Vec<Game>) -> Int {
+pub fn part1(input: &[Game]) -> Int {
     input
-        .into_iter()
+        .iter()
         .filter_map(|game| {
             if (game.colors.iter().map(|c| c.red).max().unwrap_or_default() <= 12)
                 && (game
@@ -64,9 +64,9 @@ pub fn part1(input: &Vec<Game>) -> Int {
         .sum()
 }
 
-pub fn part2(input: &Vec<Game>) -> Int {
+pub fn part2(input: &[Game]) -> Int {
     input
-        .into_iter()
+        .iter()
         .map(|game| {
             game.colors.iter().map(|c| c.red).max().unwrap_or_default() as Int
                 * (game

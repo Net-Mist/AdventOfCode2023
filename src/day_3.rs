@@ -6,7 +6,7 @@ const ZERO: u8 = 48;
 const NINE: u8 = 57;
 
 fn is_digit(n: u8) -> bool {
-    n >= ZERO && n <= NINE
+    (ZERO..=NINE).contains(&n)
 }
 
 fn check_valid(x: usize, y: usize, map: &Map) -> bool {
@@ -23,7 +23,7 @@ fn check_valid(x: usize, y: usize, map: &Map) -> bool {
             }
         }
     }
-    return false;
+    false
 }
 
 fn find_gears(x: usize, y: usize, map: &Map) -> HashSet<(usize, usize)> {
@@ -40,7 +40,7 @@ fn find_gears(x: usize, y: usize, map: &Map) -> HashSet<(usize, usize)> {
             }
         }
     }
-    return out;
+    out
 }
 
 pub fn generator(input: &str) -> Vec<Vec<u8>> {
@@ -90,10 +90,10 @@ pub fn part2(input: &Map) -> u64 {
                 }
             } else {
                 for g in valid_gears {
-                    if gear_to_numbers.contains_key(&g) {
-                        gear_to_numbers.get_mut(&g).unwrap().push(number);
+                    if let std::collections::hash_map::Entry::Vacant(e) = gear_to_numbers.entry(g) {
+                        e.insert(vec![number]);
                     } else {
-                        gear_to_numbers.insert(g, vec![number]);
+                        gear_to_numbers.get_mut(&g).unwrap().push(number);
                     }
                 }
                 number = 0;
@@ -102,10 +102,10 @@ pub fn part2(input: &Map) -> u64 {
         }
 
         for g in valid_gears {
-            if gear_to_numbers.contains_key(&g) {
-                gear_to_numbers.get_mut(&g).unwrap().push(number);
+            if let std::collections::hash_map::Entry::Vacant(e) = gear_to_numbers.entry(g) {
+                e.insert(vec![number]);
             } else {
-                gear_to_numbers.insert(g, vec![number]);
+                gear_to_numbers.get_mut(&g).unwrap().push(number);
             }
         }
     }
