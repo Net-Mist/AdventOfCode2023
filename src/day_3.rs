@@ -6,7 +6,10 @@ const ZERO: u8 = 48;
 const NINE: u8 = 57;
 
 fn is_digit(n: u8) -> bool {
-    (ZERO..=NINE).contains(&n)
+    // Keep this notation as it seems to be slightly faster than clippy proposal
+    // (ZERO..=NINE).contains(&n)
+    #![allow(clippy::all)]
+    ZERO <= n && NINE >= n
 }
 
 fn check_valid(x: usize, y: usize, map: &Map) -> bool {
@@ -74,7 +77,7 @@ pub fn part1(input: &Map) -> u64 {
     numbers.iter().sum()
 }
 
-pub fn part2(input: &Map) -> u64 {
+pub fn part2_hash(input: &Map) -> u64 {
     let mut number;
     let mut gear_to_numbers: HashMap<(usize, usize), Vec<u64>> = HashMap::new();
     let mut valid_gears;
@@ -116,6 +119,123 @@ pub fn part2(input: &Map) -> u64 {
         .sum()
 }
 
+pub fn part2(input: &Map) -> u64 {
+    let mut s = 0;
+    for (x, line) in input.iter().enumerate() {
+        for (y, e) in line.iter().enumerate() {
+            if *e != b'*' {
+                continue;
+            }
+            // at this point, we know that (x, y) is not on the border of the map
+
+            // check if 2 numbers are present
+            let mut n = 0;
+            if is_digit(input[x][y - 1]) {
+                n += 1;
+            }
+            if is_digit(input[x][y + 1]) {
+                n += 1;
+            }
+            if is_digit(input[x - 1][y]) {
+                n += 1;
+            } else {
+                if is_digit(input[x - 1][y - 1]) {
+                    n += 1
+                }
+                if is_digit(input[x - 1][y + 1]) {
+                    n += 1
+                }
+            }
+            if is_digit(input[x + 1][y]) {
+                n += 1;
+            } else {
+                if is_digit(input[x + 1][y - 1]) {
+                    n += 1
+                }
+                if is_digit(input[x + 1][y + 1]) {
+                    n += 1
+                }
+            }
+            if n != 2 {
+                continue;
+            }
+
+            // parse the 2 numbers
+            let mut p = 1;
+            if is_digit(input[x][y - 1]) {
+                p *= parse_left(input, x, y - 1);
+            }
+            if is_digit(input[x][y + 1]) {
+                p *= parse_right(input, x, y + 1);
+            }
+            if is_digit(input[x - 1][y]) {
+                p *= parse_left_right(input, x - 1, y);
+            } else {
+                if is_digit(input[x - 1][y - 1]) {
+                    p *= parse_left(input, x - 1, y - 1);
+                }
+                if is_digit(input[x - 1][y + 1]) {
+                    p *= parse_right(input, x - 1, y + 1);
+                }
+            }
+            if is_digit(input[x + 1][y]) {
+                p *= parse_left_right(input, x + 1, y);
+            } else {
+                if is_digit(input[x + 1][y - 1]) {
+                    p *= parse_left(input, x + 1, y - 1);
+                }
+                if is_digit(input[x + 1][y + 1]) {
+                    p *= parse_right(input, x + 1, y + 1);
+                }
+            }
+
+            s += p;
+        }
+    }
+    s
+}
+
+fn parse_left_right(input: &[Vec<u8>], x: usize, y: usize) -> u64 {
+    match (is_digit(input[x][y - 1]), is_digit(input[x][y + 1])) {
+        (true, true) => parse_left(input, x, y + 1),
+        (true, false) => parse_left(input, x, y),
+        (false, true) => parse_right(input, x, y),
+        (false, false) => (input[x][y] - ZERO) as u64,
+    }
+}
+
+fn parse_right(input: &[Vec<u8>], x: usize, y: usize) -> u64 {
+    let mut n = (input[x][y] - ZERO) as u64;
+    if y < input[0].len() - 1 {
+        if is_digit(input[x][y + 1]) {
+            n *= 10;
+            n += (input[x][y + 1] - ZERO) as u64;
+        } else {
+            return n;
+        }
+    }
+    if y < input[0].len() - 2 && is_digit(input[x][y + 2]) {
+        n *= 10;
+        n += (input[x][y + 2] - ZERO) as u64;
+    }
+    n
+}
+
+fn parse_left(input: &[Vec<u8>], x: usize, y: usize) -> u64 {
+    let mut n = (input[x][y] - ZERO) as u64;
+    if y > 0 {
+        if is_digit(input[x][y - 1]) {
+            n += (input[x][y - 1] - ZERO) as u64 * 10;
+        } else {
+            return n;
+        }
+    }
+    if y > 1 && is_digit(input[x][y - 2]) {
+        n += (input[x][y - 2] - ZERO) as u64 * 100;
+    }
+    n
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -137,5 +257,6 @@ mod tests {
             .664.598..";
         assert_eq!(part1(&generator(example)), 4361);
         assert_eq!(part2(&generator(example)), 467835);
+        assert_eq!(part2_hash(&generator(example)), 467835);
     }
 }
