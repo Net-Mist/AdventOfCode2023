@@ -27,6 +27,7 @@ fnv = "1.0.7"
 aoc_macro = { path = "./aoc_macro" }
 itertools = "0.10.5"
 tikv-jemallocator = "0.5"
+ahash = "0.8.6"
 # perfcnt = "0.8.0"
 # rayon = "1.7.0"
 
