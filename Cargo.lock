@@ -46,6 +46,7 @@ dependencies = [
  "criterion-perf-events",
  "fnv",
  "itertools",
+ "rayon",
  "tikv-jemallocator",
 ]
 

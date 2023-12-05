@@ -120,7 +120,7 @@ mod tests {
             Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83\n\
             Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36\n\
             Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11\n";
-        assert_eq!(part1(&generator(example)), 13);
-        assert_eq!(part2(&generator(example)), 30);
+        assert_eq!(part1(generator(example)), 13);
+        assert_eq!(part2(generator(example)), 30);
     }
 }
