@@ -3,22 +3,17 @@ pub fn generator(input: &str) -> &str {
 }
 
 pub fn part1(input: &str) -> usize {
-    let input = input
-        .lines()
-        .map(|line| {
-            line.split_whitespace()
-                .skip(1)
-                .map(|v| v.parse().unwrap())
-                .collect()
-        })
-        .collect::<Vec<Vec<f64>>>();
-    let mut p = 1;
-    for i in 0..input[0].len() {
-        let t = input[0][i];
-        let d = input[1][i];
-        p *= extract_roots(t, d);
-    }
-    p
+    let mut input = input.lines().map(|line| {
+        line.split_whitespace()
+            .skip(1)
+            .map(|v| v.parse::<f64>().unwrap())
+    });
+    input
+        .next()
+        .unwrap()
+        .zip(input.next().unwrap())
+        .map(|(t, d)| extract_roots(t, d))
+        .product()
 }
 
 pub fn part2(input: &str) -> usize {
