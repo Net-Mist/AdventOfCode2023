@@ -1,5 +1,3 @@
-use std::collections::BinaryHeap;
-
 use aoc_macro::p;
 use itertools::Itertools;
 
@@ -11,9 +9,9 @@ pub struct Hand {
 }
 
 fn compute_strength1(cards: &[u8]) -> u8 {
-    let mut c = cards.iter().counts();
+    let c = cards.iter().counts();
     let l = c.len();
-    let mut m = c.values().max().unwrap().to_owned();
+    let m = c.values().max().unwrap().to_owned();
 
     match (l, m) {
         (1, 5) => 7,
@@ -28,29 +26,18 @@ fn compute_strength1(cards: &[u8]) -> u8 {
 }
 
 fn compute_strength2(cards: &[u8]) -> u8 {
-    let j = cards.iter().filter(|v| **v == 0).count();
-    let mut c = cards.iter().filter(|c| **c != 0).counts();
-
-    let l = c.len();
-
-    if l == 0 {
+    let mut c = cards.iter().counts();
+    if c.len() == 1 {
         return 7;
     }
-    let mut m = c.values().max().unwrap().to_owned();
 
-    let mut v_to_change = 0;
-    for (&&k, &v) in c.iter() {
-        if v == m {
-            v_to_change = k;
-        }
-    }
-    let new_v = c[&v_to_change] + j;
-    c.insert(&v_to_change, new_v);
-    // c[k] += j;
-    m += j;
+    // handle jokers
+    let n_j = c.remove(&0).unwrap_or_default();
+    let (k, v) = c.iter().max_by(|x, y| x.1.cmp(y.1)).unwrap();
+    c.insert(k, v + n_j);
 
     let l = c.len();
-    let mut m = c.values().max().unwrap().to_owned();
+    let m = c.values().max().unwrap().to_owned();
 
     match (l, m) {
         (1, 5) => 7,
@@ -97,10 +84,7 @@ pub fn part1(input: &str) -> u64 {
     v.into_iter()
         .enumerate()
         .map(|(i, v)| {
-            p!(v);
-            p!(i);
-            let b = v.bid;
-            p!(b);
+            let _b = v.bid;
             (i as u64 + 1) * v.bid as u64
         })
         .sum()
@@ -148,8 +132,8 @@ pub fn part2(input: &str) -> u64 {
 mod tests {
     use super::*;
 
-    // use helper_macro::test_parts;
-    // test_parts!(2, 1698735, 1594785890);
+    use aoc_macro::test_parts;
+    test_parts!(7, 250453939, 248652697);
 
     #[test]
     fn test_base() {
@@ -158,7 +142,7 @@ mod tests {
                         KK677 28\n\
                         KTJJT 220\n\
                         QQQJA 483";
-        assert_eq!(part1(&generator(example)), 6440);
-        assert_eq!(part2(&generator(example)), 248652697);
+        assert_eq!(part1(generator(example)), 6440);
+        assert_eq!(part2(generator(example)), 5905);
     }
 }

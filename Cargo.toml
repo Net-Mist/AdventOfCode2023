@@ -29,6 +29,7 @@ itertools = "0.10.5"
 tikv-jemallocator = "0.5"
 ahash = "0.8.6"
 rayon = "1.8.0"
+num = "0.4.1"
 # perfcnt = "0.8.0"
 # rayon = "1.7.0"
 
