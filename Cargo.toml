@@ -17,7 +17,7 @@ panic = "abort"
 
 [dependencies]
 argh = "0.1.10"
-arrayvec = "0.7.2"
+arrayvec = "0.7.4"
 bitmaps = "3.2.0"
 bitvec = "1.0.1"
 colored = "2.0.0"
@@ -30,6 +30,8 @@ tikv-jemallocator = "0.5"
 ahash = "0.8.6"
 rayon = "1.8.0"
 num = "0.4.1"
+smallvec = "1.11.2"
+nohash-hasher = "0.2.0"
 # perfcnt = "0.8.0"
 # rayon = "1.7.0"
 

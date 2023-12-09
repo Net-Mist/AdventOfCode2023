@@ -1,28 +1,47 @@
-use ahash::HashMap;
+// use ahash::HashMap;
+
+use nohash_hasher::NoHashHasher;
+use std::{collections::HashMap, hash::BuildHasherDefault};
 
 use num::integer::lcm;
 
-pub fn generator(input: &str) -> (&str, HashMap<&str, (&str, &str)>) {
+const MIN_ASCII: u8 = 48;
+const RANGE_ASCII: u32 = 90 - 48;
+
+type Map = HashMap<u32, (u32, u32), BuildHasherDefault<NoHashHasher<u32>>>;
+type Type = (Vec<u8>, Map);
+
+fn perfect_hash(text: &str) -> u32 {
+    text.bytes()
+        .map(|x| (x - MIN_ASCII) as u32)
+        .reduce(|acc, x| acc * RANGE_ASCII + x)
+        .unwrap()
+}
+
+pub fn generator(input: &str) -> Type {
     let (directions, maps) = input.split_once("\n\n").unwrap();
     let maps = maps
         .lines()
         .map(|l| {
             let (map, links) = l.split_once(" = ").unwrap();
             let links = links[1..links.len() - 1].split_once(", ").unwrap();
-            (map, links)
+            (
+                perfect_hash(map),
+                (perfect_hash(links.0), perfect_hash(links.1)),
+            )
         })
         .collect();
-    (directions, maps)
+    (directions.bytes().collect(), maps)
 }
 
-pub fn part1(input: &(&str, HashMap<&str, (&str, &str)>)) -> usize {
-    let directions = input.0.bytes().collect::<Vec<_>>();
+pub fn part1(input: &Type) -> usize {
+    let directions = &input.0;
     let maps = &input.1;
-    let mut current_map = "AAA";
+    let mut current_map = perfect_hash("AAA");
 
     let mut i = 0;
-    while *current_map != *"ZZZ" {
-        let m = maps.get(current_map).unwrap();
+    while current_map != perfect_hash("ZZZ") {
+        let m = maps.get(&current_map).unwrap();
         if directions[i % directions.len()] == b'R' {
             current_map = m.1;
         } else {
@@ -33,21 +52,21 @@ pub fn part1(input: &(&str, HashMap<&str, (&str, &str)>)) -> usize {
     i
 }
 
-pub fn part2(input: &(&str, HashMap<&str, (&str, &str)>)) -> usize {
-    let directions = input.0.bytes().collect::<Vec<_>>();
+pub fn part2(input: &Type) -> usize {
+    let directions = &input.0;
     let maps = &input.1;
 
     maps.keys()
-        .filter(|v| v.ends_with('A'))
-        .map(|v| compute_n(v, maps, &directions))
+        .filter(|v| **v % RANGE_ASCII == (b'A' - MIN_ASCII) as u32)
+        .map(|v| compute_n(*v, maps, &directions))
         .reduce(lcm)
         .unwrap()
 }
 
-fn compute_n(current_map: &str, maps: &HashMap<&str, (&str, &str)>, directions: &Vec<u8>) -> usize {
+fn compute_n(current_map: u32, maps: &Map, directions: &Vec<u8>) -> usize {
     let mut i = 0;
     let mut current_map = current_map;
-    while !current_map.ends_with('Z') {
+    while 0 != (current_map % RANGE_ASCII) as u8 {
         let m = maps.get(&current_map).unwrap();
         if directions[i % directions.len()] == b'R' {
             current_map = m.1;
