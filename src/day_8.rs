@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use ahash::HashMap;
 
 use num::integer::lcm;
 
@@ -62,8 +62,8 @@ fn compute_n(current_map: &str, maps: &HashMap<&str, (&str, &str)>, directions: 
 mod tests {
     use super::*;
 
-    // use helper_macro::test_parts;
-    // test_parts!(2, 1698735, 1594785890);
+    use aoc_macro::test_parts;
+    test_parts!(8, 20513, 15995167053923);
 
     #[test]
     fn test_base() {

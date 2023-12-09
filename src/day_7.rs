@@ -1,4 +1,3 @@
-use aoc_macro::p;
 use itertools::Itertools;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
@@ -118,13 +117,7 @@ pub fn part2(input: &str) -> u64 {
     v.sort_unstable();
     v.into_iter()
         .enumerate()
-        .map(|(i, v)| {
-            p!(v);
-            p!(i);
-            let b = v.bid;
-            p!(b);
-            (i as u64 + 1) * v.bid as u64
-        })
+        .map(|(i, v)| (i as u64 + 1) * v.bid as u64)
         .sum()
 }
 

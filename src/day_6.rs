@@ -33,9 +33,9 @@ pub fn part2(input: &str) -> usize {
 }
 
 fn extract_roots(t: f64, d: f64) -> usize {
-    let delta: f64 = t * t - 4. * d;
-    let s1 = (t + delta.sqrt()) / 2. - 1e-5;
-    let s2 = (t - delta.sqrt()) / 2. + 1e-5;
+    let sqrt_delta: f64 = (t * t - 4. * d).sqrt();
+    let s1 = (t + sqrt_delta) / 2. - 1e-5;
+    let s2 = (t - sqrt_delta) / 2. + 1e-5;
     (s1.floor() - s2.ceil()) as usize + 1
 }
 
