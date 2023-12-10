@@ -1,6 +1,26 @@
-use rayon::prelude::*;
+type Int = u64;
 
-pub fn generator(input: &str) -> (Vec<u64>, Vec<Vec<Vec<u64>>>) {
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub struct Map {
+    source: Int,
+    dest: Int,
+    len: Int,
+}
+
+impl FromIterator<Int> for Map {
+    fn from_iter<T: IntoIterator<Item = Int>>(iter: T) -> Self {
+        let mut iter = iter.into_iter();
+        Map {
+            dest: iter.next().unwrap(),
+            source: iter.next().unwrap(),
+            len: iter.next().unwrap(),
+        }
+    }
+}
+
+type Input = (Vec<Int>, Vec<Vec<Map>>);
+
+pub fn generator(input: &str) -> Input {
     let mut blocks = input.split("\n\n");
     let seeds = blocks
         .next()
@@ -8,31 +28,33 @@ pub fn generator(input: &str) -> (Vec<u64>, Vec<Vec<Vec<u64>>>) {
         .split(' ')
         .skip(1)
         .map(|n| n.parse().unwrap())
-        .collect::<Vec<u64>>();
+        .collect();
 
     let maps = blocks
         .map(|block| {
-            block
+            let mut maps = block
                 .lines()
                 .skip(1)
                 .map(|line| line.split(' ').map(|v| v.parse().unwrap()).collect())
-                .collect()
+                .collect::<Vec<Map>>();
+            maps.sort();
+            maps
         })
         .collect();
     (seeds, maps)
 }
 
-pub fn part1(input: &(Vec<u64>, Vec<Vec<Vec<u64>>>)) -> u64 {
+pub fn part1(input: &Input) -> Int {
     let (seeds, maps) = input;
 
-    let mut l = u64::MAX;
+    let mut l = Int::MAX;
     for seed in seeds {
         let mut v = *seed;
 
         'outer: for map in maps {
             for range in map.iter() {
-                if v >= range[1] && v < range[1] + range[2] {
-                    v = range[0] + (v - range[1]);
+                if v >= range.source && v < range.source + range.len {
+                    v = range.dest + (v - range.source);
                     continue 'outer;
                 }
             }
@@ -44,38 +66,48 @@ pub fn part1(input: &(Vec<u64>, Vec<Vec<Vec<u64>>>)) -> u64 {
     l
 }
 
-pub fn part2(input: &(Vec<u64>, Vec<Vec<Vec<u64>>>)) -> u64 {
+pub fn part2(input: &Input) -> Int {
     let (seeds, maps) = input;
 
-    seeds
-        .par_chunks(2)
-        .map(|seed| {
-            let mut l = u64::MAX;
-            for mut v in seed[0]..seed[0] + seed[1] {
-                'outer: for map in maps {
-                    for range in map.iter() {
-                        if v >= range[1] && v < range[1] + range[2] {
-                            v = range[0] + (v - range[1]);
-                            continue 'outer;
-                        }
+    let mut min = Int::MAX;
+    for seed in seeds.chunks(2) {
+        let seed_min = seed[0];
+        let seed_max = seed[0] + seed[1];
+        let mut l = Int::MAX;
+        let mut next_seed = seed_min;
+
+        while next_seed < seed_max {
+            let mut v = next_seed;
+            let mut jump = Int::MAX;
+            'outer: for map in maps {
+                // range are sorted
+                for range in map.iter() {
+                    if v >= range.source && v < range.source + range.len {
+                        jump = jump.min(range.source + range.len - v);
+                        v = range.dest + (v - range.source);
+                        continue 'outer;
+                    }
+                    if v < range.source {
+                        // then v is outside of all ranges
+                        jump = jump.min(range.source - v);
+                        continue 'outer;
                     }
                 }
-                if v < l {
-                    l = v;
-                }
             }
-            l
-        })
-        .min()
-        .unwrap()
+            next_seed += jump;
+            l = l.min(v);
+        }
+        min = min.min(l);
+    }
+    min
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // use aoc_macro::test_parts;
-    // test_parts!(5, 836040384, 10834440);
+    use aoc_macro::test_parts;
+    test_parts!(5, 836040384, 10834440);
 
     #[test]
     fn test_base() {
