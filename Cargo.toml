@@ -10,9 +10,9 @@ debug = true
 
 [profile.release]
 debug = true
-lto = "fat"
-codegen-units = 1
-panic = "abort"
+# lto = "fat"
+# codegen-units = 1
+# panic = "abort"
 
 
 [dependencies]
@@ -21,12 +21,10 @@ arrayvec = "0.7.4"
 bitmaps = "3.2.0"
 bitvec = "1.0.1"
 colored = "2.0.0"
-criterion-cycles-per-byte = "0.4.0"
-criterion-perf-events = "0.3.0"
 fnv = "1.0.7"
 aoc_macro = { path = "./aoc_macro" }
 itertools = "0.10.5"
-tikv-jemallocator = "0.5"
+# tikv-jemallocator = "0.5"
 ahash = "0.8.6"
 rayon = "1.8.0"
 num = "0.4.1"
@@ -36,7 +34,9 @@ nohash-hasher = "0.2.0"
 # rayon = "1.7.0"
 
 [dev-dependencies]
-criterion = { version = "0.4", features = ["html_reports"] }
+criterion = { version = "0.4", features = ["html_reports"], default-features = false }
+criterion-cycles-per-byte = "0.4.0"
+criterion-perf-events = "0.3.0"
 
 [[bench]]
 name = "bench"

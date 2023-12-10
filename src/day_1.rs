@@ -72,15 +72,14 @@ pub fn part2(input: &str) -> Int {
     input
         .lines()
         .map(|line| {
-            let mut vec = vec![];
+            let mut vec = Vec::with_capacity(line.len());
             for i in 0..line.len() {
-                let r = str_to_int(&line[i..]);
-                if let Some(v) = r {
+                if let Some(v) = str_to_int(&line[i..]) {
                     vec.push(v);
                 }
             }
             let first = vec.first().unwrap();
-            let last = vec.iter().last().unwrap();
+            let last = vec.last().unwrap();
             (first * 10 + last) as Int
         })
         .sum()

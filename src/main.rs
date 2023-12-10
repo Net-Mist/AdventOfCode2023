@@ -9,9 +9,9 @@ use aoc_macro::main;
 use argh::FromArgs;
 use colored::*;
 
-use tikv_jemallocator::Jemalloc;
-#[global_allocator]
-static GLOBAL: Jemalloc = Jemalloc;
+// use tikv_jemallocator::Jemalloc;
+// #[global_allocator]
+// static GLOBAL: Jemalloc = Jemalloc;
 
 #[derive(FromArgs)]
 /** Advent of Code (https://adventofcode.com/)

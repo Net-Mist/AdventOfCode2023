@@ -1,5 +1,3 @@
-// use ahash::HashMap;
-
 use nohash_hasher::NoHashHasher;
 use std::{collections::HashMap, hash::BuildHasherDefault};
 
@@ -58,7 +56,7 @@ pub fn part2(input: &Type) -> usize {
 
     maps.keys()
         .filter(|v| **v % RANGE_ASCII == (b'A' - MIN_ASCII) as u32)
-        .map(|v| compute_n(*v, maps, &directions))
+        .map(|v| compute_n(*v, maps, directions))
         .reduce(lcm)
         .unwrap()
 }

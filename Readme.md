@@ -6,7 +6,7 @@ I tried to have the fastest solution possible by implementing concepts from [The
 
 ## Things learn
 
-- When size of vector are known, use ArrayVec
+- When size of vector are known, use ArrayVec to prevent Heap allocation
 
 ## generate all days
 
