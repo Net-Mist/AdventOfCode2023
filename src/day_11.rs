@@ -88,7 +88,7 @@ mod tests {
 
         let input = dilate(generator(example).to_owned(), 9);
         let s: u32 = iproduct!(&input, &input)
-            .map(|(a, b)| ((b.0).abs_diff(a.0) + b.1.abs_diff(a.1)) as u32)
+            .map(|(a, b)| ((b.0).abs_diff(a.0) + b.1.abs_diff(a.1)))
             .sum();
         let s = s >> 1;
 

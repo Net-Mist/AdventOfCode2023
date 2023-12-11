@@ -86,7 +86,7 @@ pub fn generator(input: &str) -> Type {
 pub fn part1(input: &Type) -> usize {
     let (position_start, map) = input;
     let l = compute_loop(position_start, map);
-    return l.len() / 2;
+    l.len() / 2
 }
 
 fn compute_loop(position_start: &(u8, u8), map: &Map) -> ArrayVec<(u8, u8), 15000> {

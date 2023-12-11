@@ -1,3 +1,4 @@
+use ahash::HashSet;
 use arrayvec::ArrayVec;
 use nohash_hasher::{BuildNoHashHasher, NoHashHasher};
 use std::{collections::HashMap, hash::BuildHasherDefault};
@@ -21,8 +22,8 @@ struct Node {
 #[derive(Default, Debug)]
 pub struct Maps {
     nodes: ArrayVec<Node, 766>,
-    begining_part2: ArrayVec<Int, 10>,
-    end_part2: ArrayVec<Int, 10>,
+    beginning_part2: ArrayVec<Int, 10>,
+    end_part2: HashSet<Int>,
     beginning_part1: Int,
     end_part1: Int,
 }
@@ -56,6 +57,13 @@ pub fn generator(input: &str) -> Type {
     let mut str_to_id: Map = HashMap::with_capacity_and_hasher(766, BuildNoHashHasher::default());
     let mut all_maps = Maps::default();
 
+    str_to_id.insert(perfect_hash("AAA"), all_maps.new_node());
+    str_to_id.insert(perfect_hash("ZZZ"), all_maps.new_node());
+
+    // TODO count the number of items with "**Z" and group them at the end of the maps, so we don't need to compute hashes anymore
+    // TODO solution 2 : keep a marker in Node if this is an end node
+    all_maps.end_part1 = 1;
+
     for l in maps.lines() {
         let (map, links) = l.split_once(" = ").unwrap();
         let links = links[1..links.len() - 1].split_once(", ").unwrap();
@@ -77,17 +85,11 @@ pub fn generator(input: &str) -> Type {
             right: right_id.to_owned() as u16,
         };
 
-        if map == "AAA" {
-            all_maps.beginning_part1 = map_id;
+        if map.ends_with('A') {
+            all_maps.beginning_part2.push(map_id);
         }
-        if map == "ZZZ" {
-            all_maps.end_part1 = map_id;
-        }
-        if map.ends_with("A") {
-            all_maps.begining_part2.push(map_id);
-        }
-        if map.ends_with("Z") {
-            all_maps.end_part2.push(map_id);
+        if map.ends_with('Z') {
+            all_maps.end_part2.insert(map_id);
         }
     }
     (directions.bytes().collect(), all_maps)
@@ -114,7 +116,7 @@ pub fn part2(input: &Type) -> usize {
     let directions = &input.0;
     let maps = &input.1;
 
-    maps.begining_part2
+    maps.beginning_part2
         .iter()
         .map(|v| compute_n(*v, maps, directions))
         .reduce(lcm)
