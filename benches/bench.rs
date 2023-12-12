@@ -1,3 +1,3 @@
 use aoc_macro::benchmark;
 
-benchmark!(10);
+benchmark!(12);

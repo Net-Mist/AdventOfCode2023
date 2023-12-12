@@ -1,9 +1,10 @@
+use arrayvec::ArrayVec;
 use itertools::Itertools;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct Hand {
     strength: u8,
-    cards: Vec<u8>,
+    cards: ArrayVec<u8, 5>,
     bid: u32,
 }
 
@@ -70,7 +71,7 @@ pub fn part1(input: &str) -> u64 {
                     b'T' => 11,
                     v => v - 48,
                 })
-                .collect::<Vec<_>>();
+                .collect::<ArrayVec<_, 5>>();
             let strength = compute_strength1(&cards);
             Hand {
                 cards,
@@ -78,14 +79,11 @@ pub fn part1(input: &str) -> u64 {
                 bid,
             }
         })
-        .collect::<Vec<Hand>>();
+        .collect::<ArrayVec<Hand, 1000>>();
     v.sort_unstable();
     v.into_iter()
         .enumerate()
-        .map(|(i, v)| {
-            let _b = v.bid;
-            (i as u64 + 1) * v.bid as u64
-        })
+        .map(|(i, v)| (i as u64 + 1) * v.bid as u64)
         .sum()
 }
 
@@ -105,7 +103,7 @@ pub fn part2(input: &str) -> u64 {
                     b'T' => 11,
                     v => v - 48,
                 })
-                .collect::<Vec<_>>();
+                .collect::<ArrayVec<_, 5>>();
             let strength = compute_strength2(&cards);
             Hand {
                 cards,
@@ -113,7 +111,7 @@ pub fn part2(input: &str) -> u64 {
                 bid,
             }
         })
-        .collect::<Vec<Hand>>();
+        .collect::<ArrayVec<Hand, 1000>>();
     v.sort_unstable();
     v.into_iter()
         .enumerate()

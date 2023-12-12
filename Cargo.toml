@@ -30,6 +30,7 @@ rayon = "1.8.0"
 num = "0.4.1"
 smallvec = "1.11.2"
 nohash-hasher = "0.2.0"
+cached = "0.46.1"
 # perfcnt = "0.8.0"
 # rayon = "1.7.0"
 
