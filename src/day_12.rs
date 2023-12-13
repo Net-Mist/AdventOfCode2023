@@ -1,8 +1,5 @@
-use aoc_macro::{binp, p};
 
-const N_GROUPS: usize = 10 * 5;
-const N_BITS: usize = 20 * 5 + 5;
-const CACHE_SIZE: usize = N_GROUPS * N_BITS;
+
 type Input = Vec<(u128, u128, Vec<u8>, u8)>;
 
 pub fn generator(input: &str) -> Input {
@@ -36,7 +33,7 @@ pub fn part1(input: &Input) -> u64 {
             let mut groups = groups.to_owned();
             groups.reverse();
             let n_damaged = groups.len() as u8;
-            let mut cache = vec![u64::MAX; *n_bits as usize * n_damaged as usize];
+            let _cache = vec![u64::MAX; *n_bits as usize * n_damaged as usize];
             count_valid(*damaged, *unknown, &groups, *n_bits)
         })
         .sum()
@@ -65,13 +62,14 @@ pub fn part2(input: &Input) -> u64 {
         .sum()
 }
 
-fn count_valid(damaged: u128, unknown: u128, count: &[u8], n_bits: u8) -> u64 {
+fn count_valid(damaged: u128, unknown: u128, count: &[u8], max_n_bits: u8) -> u64 {
     let damaged_or_unknown = damaged | unknown;
     let mut s = 0u64;
+    let mut previous_s;
 
-    let mut cache_previous = vec![0u64; n_bits as usize + 1];
+    let mut cache_previous = vec![0u64; max_n_bits as usize + 1];
     cache_previous[0] = 1; // finding 0 damaged on a empty map is a success
-    for i in 0..n_bits {
+    for i in 0..max_n_bits {
         if (damaged >> i) & 1 != 1 {
             cache_previous[i as usize + 1] = 1;
         } else {
@@ -79,34 +77,41 @@ fn count_valid(damaged: u128, unknown: u128, count: &[u8], n_bits: u8) -> u64 {
         }
     }
 
-    let mut cache_current = vec![0; n_bits as usize + 1];
+    let mut cache_current = vec![0; max_n_bits as usize + 1];
     let mut min_bits: u8 = 0;
     let mut additionnal_jump = 0;
-    for groupe_size in count {
-        for i in 0..groupe_size + additionnal_jump {
-            cache_current[i as usize + min_bits as usize] = 0;
-        }
-
-        min_bits += additionnal_jump + *groupe_size;
-        for n_bits in (min_bits as u8)..=n_bits {
-            s = 0;
-
-            // if not damaged, skip to the next one
-            if damaged >> (n_bits - 1) & 1 == 0 {
-                s += cache_current[(n_bits - 1) as usize];
+    unsafe {
+        for groupe_size in count {
+            previous_s = 0;
+            for i in 0..groupe_size + additionnal_jump {
+                *cache_current.get_unchecked_mut(i as usize + min_bits as usize) = 0;
             }
 
-            let group = damaged_or_unknown >> (n_bits - groupe_size);
-            let is_full_1 = (group + 1) & ((1 << groupe_size) - 1) == 0;
-            let is_not_followed_by_damaged = (damaged << 1) & (1 << (n_bits - groupe_size)) == 0;
-            if is_full_1 && is_not_followed_by_damaged {
-                s += cache_previous[(n_bits - groupe_size - additionnal_jump) as usize];
-            }
+            min_bits += additionnal_jump + *groupe_size;
+            for n_bits in min_bits..=max_n_bits {
+                s = 0;
 
-            cache_current[n_bits as usize] = s;
+                // if not damaged, skip to the next one
+                if damaged >> (n_bits - 1) & 1 == 0 {
+                    s += previous_s;
+                }
+
+                let group = ((damaged_or_unknown >> (n_bits - groupe_size)) as u16).wrapping_add(1);
+                let validator = 0b1111111111111111 >> (16 - groupe_size);
+                let is_full_1 = group & validator == 0;
+                let is_not_followed_by_damaged =
+                    (damaged << 1) & (1 << (n_bits - groupe_size)) == 0;
+                if is_full_1 && is_not_followed_by_damaged {
+                    s += cache_previous
+                        .get_unchecked((n_bits - groupe_size - additionnal_jump) as usize);
+                }
+
+                *cache_current.get_unchecked_mut(n_bits as usize) = s;
+                previous_s = s;
+            }
+            (cache_previous, cache_current) = (cache_current, cache_previous);
+            additionnal_jump = 1;
         }
-        (cache_previous, cache_current) = (cache_current, cache_previous);
-        additionnal_jump = 1;
     }
     s
 }
@@ -137,9 +142,6 @@ mod tests {
 
         let example = "?###???????? 3,2,1";
         assert_eq!(part1(&generator(example)), 10);
-
-        // assert_eq!(part1(&generator(example)), 21);
-        // assert_eq!(part2(&generator(example)), 525152);
 
         let example = "???.### 1,1,3\n\
                                 .??..??...?##. 1,1,3\n\
