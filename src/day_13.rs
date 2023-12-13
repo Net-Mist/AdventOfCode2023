@@ -1,11 +1,11 @@
-use aoc_macro::p;
+use arrayvec::ArrayVec;
 
-type Input = Vec<Vec<Vec<u8>>>;
+type Input<'a> = ArrayVec<ArrayVec<&'a [u8], 17>, 100>;
 
 pub fn generator(input: &str) -> Input {
     let block = input.split("\n\n");
     block
-        .map(|b| b.lines().map(|l| l.bytes().collect()).collect())
+        .map(|b| b.lines().map(|line| line.as_bytes()).collect())
         .collect()
 }
 

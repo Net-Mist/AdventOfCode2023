@@ -1,3 +1,5 @@
+use aoc_macro::{binp, p};
+
 const N_GROUPS: usize = 10 * 5;
 const N_BITS: usize = 20 * 5 + 5;
 const CACHE_SIZE: usize = N_GROUPS * N_BITS;
@@ -34,16 +36,8 @@ pub fn part1(input: &Input) -> u64 {
             let mut groups = groups.to_owned();
             groups.reverse();
             let n_damaged = groups.len() as u8;
-            let mut cache = [u64::MAX; CACHE_SIZE];
-            count_valid(
-                *damaged,
-                *unknown,
-                &groups,
-                &mut cache,
-                *n_bits,
-                n_damaged,
-                groups.iter().sum::<u8>(),
-            )
+            let mut cache = vec![u64::MAX; *n_bits as usize * n_damaged as usize];
+            count_valid(*damaged, *unknown, &groups, *n_bits)
         })
         .sum()
 }
@@ -64,84 +58,56 @@ pub fn part2(input: &Input) -> u64 {
                 new_damaged <<= 1 + n_bits;
                 new_damaged += damaged;
             }
-            let n_damaged = count.len() as u8 * 5;
-            let n_damaged_to_find = count.iter().sum::<u8>() * 5;
             let new_count = count.repeat(5);
-            let mut cache = [u64::MAX; 10400];
 
-            count_valid(
-                new_damaged,
-                new_unknown,
-                &new_count,
-                &mut cache,
-                n_bits * 5 + 4,
-                n_damaged,
-                n_damaged_to_find,
-            )
+            count_valid(new_damaged, new_unknown, &new_count, n_bits * 5 + 4)
         })
         .sum()
 }
 
-fn count_valid(
-    damaged: u128,
-    unknown: u128,
-    count: &[u8],
-    cache_matrix: &mut [u64],
-    n_bits: u8,
-    n_damaged_groups: u8,
-    n_damaged_to_find: u8,
-) -> u64 {
-    let n_c = n_damaged_to_find;
-    let n_d = damaged.count_ones() as u8;
-    let n_u = unknown.count_ones() as u8;
-    if (n_c > n_d + n_u) || (n_c < n_d) {
-        return 0;
-    }
+fn count_valid(damaged: u128, unknown: u128, count: &[u8], n_bits: u8) -> u64 {
+    let damaged_or_unknown = damaged | unknown;
+    let mut s = 0u64;
 
-    let cache_key = n_damaged_groups as usize * N_BITS + n_bits as usize;
-    if cache_matrix[cache_key] != u64::MAX {
-        return cache_matrix[cache_key];
-    }
-
-    let mut s = 0;
-    if count.is_empty() {
-        if damaged != 0 {
-            return 0;
+    let mut cache_previous = vec![0u64; n_bits as usize + 1];
+    cache_previous[0] = 1; // finding 0 damaged on a empty map is a success
+    for i in 0..n_bits {
+        if (damaged >> i) & 1 != 1 {
+            cache_previous[i as usize + 1] = 1;
+        } else {
+            break;
         }
-        return 1;
     }
-    if damaged == 0 && unknown == 0 {
-        if n_damaged_groups > 0 {
-            return 0;
+
+    let mut cache_current = vec![0; n_bits as usize + 1];
+    let mut min_bits: u8 = 0;
+    let mut additionnal_jump = 0;
+    for groupe_size in count {
+        for i in 0..groupe_size + additionnal_jump {
+            cache_current[i as usize + min_bits as usize] = 0;
         }
-        return 1;
-    }
 
-    if damaged & 1 == 0 {
-        s += count_valid(
-            damaged >> 1,
-            unknown >> 1,
-            count,
-            cache_matrix,
-            n_bits - 1,
-            n_damaged_groups,
-            n_damaged_to_find,
-        );
-    }
+        min_bits += additionnal_jump + *groupe_size;
+        for n_bits in (min_bits as u8)..=n_bits {
+            s = 0;
 
-    let i = count[0];
-    if ((damaged + unknown + 1) & ((1 << i) - 1) == 0) && (damaged & (1 << i) == 0) {
-        s += count_valid(
-            damaged >> (i + 1),
-            unknown >> (i + 1),
-            &count[1..],
-            cache_matrix,
-            n_bits.saturating_sub(i + 1),
-            n_damaged_groups - 1,
-            n_damaged_to_find - i,
-        );
+            // if not damaged, skip to the next one
+            if damaged >> (n_bits - 1) & 1 == 0 {
+                s += cache_current[(n_bits - 1) as usize];
+            }
+
+            let group = damaged_or_unknown >> (n_bits - groupe_size);
+            let is_full_1 = (group + 1) & ((1 << groupe_size) - 1) == 0;
+            let is_not_followed_by_damaged = (damaged << 1) & (1 << (n_bits - groupe_size)) == 0;
+            if is_full_1 && is_not_followed_by_damaged {
+                s += cache_previous[(n_bits - groupe_size - additionnal_jump) as usize];
+            }
+
+            cache_current[n_bits as usize] = s;
+        }
+        (cache_previous, cache_current) = (cache_current, cache_previous);
+        additionnal_jump = 1;
     }
-    cache_matrix[cache_key] = s;
     s
 }
 
@@ -154,6 +120,27 @@ mod tests {
 
     #[test]
     fn test_base() {
+        let example = "???.### 1,1,3";
+        assert_eq!(part1(&generator(example)), 1);
+
+        let example = ".??..??...?##. 1,1,3";
+        assert_eq!(part1(&generator(example)), 4);
+
+        let example = "?#?#?#?#?#?#?#? 1,3,1,6";
+        assert_eq!(part1(&generator(example)), 1);
+
+        let example = "????.#...#... 4,1,1";
+        assert_eq!(part1(&generator(example)), 1);
+
+        let example = "????.######..#####. 1,6,5";
+        assert_eq!(part1(&generator(example)), 4);
+
+        let example = "?###???????? 3,2,1";
+        assert_eq!(part1(&generator(example)), 10);
+
+        // assert_eq!(part1(&generator(example)), 21);
+        // assert_eq!(part2(&generator(example)), 525152);
+
         let example = "???.### 1,1,3\n\
                                 .??..??...?##. 1,1,3\n\
                                 ?#?#?#?#?#?#?#? 1,3,1,6\n\
