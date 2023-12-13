@@ -8,8 +8,8 @@ pub fn generator(input: &str) -> Input {
         .lines()
         .map(|l| {
             let (map, groups) = l.split_once(' ').unwrap();
-            let mut damaged = 0u128;
-            let mut unknown = 0u128;
+            let mut damaged = 0;
+            let mut unknown = 0;
 
             for b in map.bytes() {
                 damaged <<= 1;
@@ -27,20 +27,28 @@ pub fn generator(input: &str) -> Input {
         .collect()
 }
 
-pub fn part1(input: &Input) -> usize {
+pub fn part1(input: &Input) -> u64 {
     input
         .iter()
         .map(|(damaged, unknown, groups, n_bits)| {
             let mut groups = groups.to_owned();
             groups.reverse();
-            let n_damaged = groups.iter().sum();
-            let mut cache = [usize::MAX; CACHE_SIZE];
-            count_valid(*damaged, *unknown, &groups, &mut cache, *n_bits, n_damaged)
+            let n_damaged = groups.len() as u8;
+            let mut cache = [u64::MAX; CACHE_SIZE];
+            count_valid(
+                *damaged,
+                *unknown,
+                &groups,
+                &mut cache,
+                *n_bits,
+                n_damaged,
+                groups.iter().sum::<u8>(),
+            )
         })
         .sum()
 }
 
-pub fn part2(input: &Input) -> usize {
+pub fn part2(input: &Input) -> u64 {
     input
         .iter()
         .map(|(damaged, unknown, count, n_bits)| {
@@ -56,17 +64,19 @@ pub fn part2(input: &Input) -> usize {
                 new_damaged <<= 1 + n_bits;
                 new_damaged += damaged;
             }
+            let n_damaged = count.len() as u8 * 5;
+            let n_damaged_to_find = count.iter().sum::<u8>() * 5;
             let new_count = count.repeat(5);
-            let n_damaged = new_count.iter().sum();
-            let mut cache = [usize::MAX; 10400];
+            let mut cache = [u64::MAX; 10400];
 
             count_valid(
                 new_damaged,
                 new_unknown,
-                &count.repeat(5),
+                &new_count,
                 &mut cache,
-                *n_bits * 5 + 4,
+                n_bits * 5 + 4,
                 n_damaged,
+                n_damaged_to_find,
             )
         })
         .sum()
@@ -76,14 +86,23 @@ fn count_valid(
     damaged: u128,
     unknown: u128,
     count: &[u8],
-    cache_matrix: &mut [usize],
+    cache_matrix: &mut [u64],
     n_bits: u8,
-    n_damaged: u8,
-) -> usize {
-    let cache_key = n_damaged as usize * N_BITS + n_bits as usize;
-    if cache_matrix[cache_key] != usize::MAX {
+    n_damaged_groups: u8,
+    n_damaged_to_find: u8,
+) -> u64 {
+    let n_c = n_damaged_to_find;
+    let n_d = damaged.count_ones() as u8;
+    let n_u = unknown.count_ones() as u8;
+    if (n_c > n_d + n_u) || (n_c < n_d) {
+        return 0;
+    }
+
+    let cache_key = n_damaged_groups as usize * N_BITS + n_bits as usize;
+    if cache_matrix[cache_key] != u64::MAX {
         return cache_matrix[cache_key];
     }
+
     let mut s = 0;
     if count.is_empty() {
         if damaged != 0 {
@@ -92,7 +111,7 @@ fn count_valid(
         return 1;
     }
     if damaged == 0 && unknown == 0 {
-        if count.iter().any(|v| *v != 0) {
+        if n_damaged_groups > 0 {
             return 0;
         }
         return 1;
@@ -105,19 +124,21 @@ fn count_valid(
             count,
             cache_matrix,
             n_bits - 1,
-            n_damaged,
+            n_damaged_groups,
+            n_damaged_to_find,
         );
     }
 
     let i = count[0];
-    if ((damaged + unknown + 1) & ((1 << i) - 1) == 0) && (damaged & (1 << (i)) == 0) {
+    if ((damaged + unknown + 1) & ((1 << i) - 1) == 0) && (damaged & (1 << i) == 0) {
         s += count_valid(
             damaged >> (i + 1),
             unknown >> (i + 1),
             &count[1..],
             cache_matrix,
             n_bits.saturating_sub(i + 1),
-            n_damaged - i,
+            n_damaged_groups - 1,
+            n_damaged_to_find - i,
         );
     }
     cache_matrix[cache_key] = s;
