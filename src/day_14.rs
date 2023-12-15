@@ -63,8 +63,7 @@ fn total_load(input: Input) -> usize {
 }
 
 fn step(h: usize, w: usize, input: &mut Input) {
-    dbg!("new step");
-    let mut next_position = 0;
+    let mut next_position;
     for c in 0..w {
         next_position = 0;
         for l in 0..h {

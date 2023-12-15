@@ -1,31 +1,81 @@
-pub fn generator(input: &str) -> &str {
-    input
+type Type<'a> = Vec<&'a str>;
+
+pub fn generator(input: &str) -> Type {
+    input.lines().next().unwrap().split(',').collect()
 }
 
-pub fn part1(_input: &str) -> usize {
-    1
+fn compute_hash(w: &str) -> u8 {
+    let mut hash = 0u8;
+    for b in w.bytes() {
+        hash = hash.wrapping_add(b);
+        hash = hash.wrapping_mul(17);
+    }
+    hash
 }
 
-pub fn part2(_input: &str) -> usize {
-    1
+pub fn part1(input: &Type) -> u32 {
+    input.iter().map(|w| compute_hash(w) as u32).sum()
+}
+
+#[derive(Clone, Copy, Debug)]
+struct Element<'a> {
+    label: &'a str,
+    value: u16,
+}
+
+pub fn part2(input: &Type) -> u32 {
+    let mut hashmap: Vec<Vec<Element>> = vec![vec![]; 256];
+    'outer: for w in input {
+        if let Some((label, value)) = w.split_once('=') {
+            let hash = compute_hash(label);
+            let value = value.parse().unwrap();
+
+            let v = hashmap.get_mut(hash as usize).unwrap();
+            for element in v.iter_mut() {
+                if element.label == label {
+                    element.value = value;
+                    continue 'outer;
+                }
+            }
+            v.push(Element { label, value });
+        } else {
+            let label = &w[0..w.len() - 1];
+            let hash = compute_hash(label);
+            let mut id = None;
+            for (i, e) in hashmap[hash as usize].iter().enumerate() {
+                if e.label == label {
+                    id = Some(i);
+                    break;
+                }
+            }
+            if let Some(i) = id {
+                hashmap.get_mut(hash as usize).unwrap().remove(i);
+            }
+        }
+    }
+    hashmap
+        .iter()
+        .enumerate()
+        .map(|(i, b)| {
+            b.iter()
+                .enumerate()
+                .map(|(j, e)| (1 + i as u32) * (1 + j as u32) * e.value as u32)
+                .sum::<u32>()
+        })
+        .sum()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // use helper_macro::test_parts;
-    // test_parts!(2, 1698735, 1594785890);
+    use aoc_macro::test_parts;
+    test_parts!(15, 511215, 236057);
 
     #[test]
     fn test_base() {
-        let example = "forward 5\n\
-        down 5\n\
-        forward 8\n\
-        up 3\n\
-        down 8\n\
-        forward 2";
-        assert_eq!(part1(generator(example)), 1);
-        assert_eq!(part2(generator(example)), 1);
+        let example = "rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7";
+        assert_eq!(part1(&generator(example)), 1320);
+        assert_eq!(part2(&generator(example)), 145);
     }
 }
