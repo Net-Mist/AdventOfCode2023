@@ -1,4 +1,7 @@
-pub fn generator(input: &str) -> &str {
+use std::str::from_utf8;
+
+pub fn generator(input: &[u8]) -> &str {
+    let input = from_utf8(input).unwrap();
     input
 }
 
@@ -50,7 +53,8 @@ mod tests {
     fn test_base() {
         let example = "Time:      7  15   30\n\
             Distance:  9  40  200\n\
-            ";
+            "
+        .as_bytes();
         assert_eq!(part1(generator(example)), 288);
         assert_eq!(part2(generator(example)), 71503);
     }

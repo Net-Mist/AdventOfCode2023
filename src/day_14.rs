@@ -1,10 +1,14 @@
+use std::str::from_utf8;
+
 use ahash::{HashMap, HashMapExt};
 
 use arrayvec::ArrayVec;
 
 type Input = ArrayVec<ArrayVec<u8, 100>, 100>;
 
-pub fn generator(input: &str) -> Input {
+pub fn generator(input: &[u8]) -> Input {
+    let input = from_utf8(input).unwrap();
+
     input.lines().map(|line| line.bytes().collect()).collect()
 }
 
@@ -135,7 +139,8 @@ mod tests {
                              ..O..#O..O\n\
                              .......O..\n\
                              #....###..\n\
-                             #OO..#....";
+                             #OO..#...."
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 136);
         assert_eq!(part2(&generator(example)), 64);
     }

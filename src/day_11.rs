@@ -1,9 +1,13 @@
+use std::str::from_utf8;
+
 use arrayvec::ArrayVec;
 
 type Int = u32;
 type Input = ArrayVec<(Int, Int), 443>;
 
-pub fn generator(input: &str) -> Input {
+pub fn generator(input: &[u8]) -> Input {
+    let input = from_utf8(input).unwrap();
+
     input
         .lines()
         .enumerate()
@@ -83,7 +87,8 @@ mod tests {
                             .........#\n\
                             ..........\n\
                             .......#..\n\
-                            #...#.....";
+                            #...#....."
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 374);
 
         let input = dilate(generator(example).to_owned(), 9);

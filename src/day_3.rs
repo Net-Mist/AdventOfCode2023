@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-type Map = Vec<Vec<u8>>;
+type Map<'a> = Vec<&'a [u8]>;
 
 const ZERO: u8 = 48;
 const NINE: u8 = 57;
@@ -8,6 +8,7 @@ const NINE: u8 = 57;
 fn is_digit(n: u8) -> bool {
     // Keep this notation as it seems to be slightly faster than clippy proposal
     // (ZERO..=NINE).contains(&n)
+    // TODO look at ASM code
     #![allow(clippy::all)]
     ZERO <= n && NINE >= n
 }
@@ -46,8 +47,8 @@ fn find_gears(x: usize, y: usize, map: &Map) -> HashSet<(usize, usize)> {
     out
 }
 
-pub fn generator(input: &str) -> Vec<Vec<u8>> {
-    input.lines().map(|line| line.bytes().collect()).collect()
+pub fn generator(input: &[u8]) -> Vec<&[u8]> {
+    input[0..input.len() - 1].split(|b| b == &b'\n').collect()
 }
 
 pub fn part1(input: &Map) -> u64 {
@@ -195,7 +196,7 @@ pub fn part2(input: &Map) -> u64 {
     s
 }
 
-fn parse_left_right(input: &[Vec<u8>], x: usize, y: usize) -> u64 {
+fn parse_left_right(input: &[&[u8]], x: usize, y: usize) -> u64 {
     match (is_digit(input[x][y - 1]), is_digit(input[x][y + 1])) {
         (true, true) => parse_left(input, x, y + 1),
         (true, false) => parse_left(input, x, y),
@@ -204,7 +205,7 @@ fn parse_left_right(input: &[Vec<u8>], x: usize, y: usize) -> u64 {
     }
 }
 
-fn parse_right(input: &[Vec<u8>], x: usize, y: usize) -> u64 {
+fn parse_right(input: &[&[u8]], x: usize, y: usize) -> u64 {
     let mut n = (input[x][y] - ZERO) as u64;
     if y < input[0].len() - 1 {
         if is_digit(input[x][y + 1]) {
@@ -221,7 +222,7 @@ fn parse_right(input: &[Vec<u8>], x: usize, y: usize) -> u64 {
     n
 }
 
-fn parse_left(input: &[Vec<u8>], x: usize, y: usize) -> u64 {
+fn parse_left(input: &[&[u8]], x: usize, y: usize) -> u64 {
     let mut n = (input[x][y] - ZERO) as u64;
     if y > 0 {
         if is_digit(input[x][y - 1]) {
@@ -254,7 +255,8 @@ mod tests {
             ..592.....\n\
             ......755.\n\
             ...$.*....\n\
-            .664.598..";
+            .664.598..\n"
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 4361);
         assert_eq!(part2(&generator(example)), 467835);
         assert_eq!(part2_hash(&generator(example)), 467835);

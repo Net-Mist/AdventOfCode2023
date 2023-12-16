@@ -1,6 +1,10 @@
+use std::str::from_utf8;
+
 use ahash::{HashSet, HashSetExt};
 
-pub fn generator(input: &str) -> Vec<&[u8]> {
+pub fn generator(input: &[u8]) -> Vec<&[u8]> {
+    let input = from_utf8(input).unwrap();
+
     input[0..input.len() - 1]
         .as_bytes()
         .split(|b| b == &b'\n')
@@ -161,7 +165,8 @@ mod tests {
                         ..../.\\\\..\n\
                         .-.-/..|..\n\
                         .|....-|.\\\n\
-                        ..//.|....\n";
+                        ..//.|....\n"
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 46);
         assert_eq!(part2(&generator(example)), 51);
     }

@@ -1,3 +1,5 @@
+use std::str::from_utf8;
+
 use arrayvec::ArrayVec;
 use itertools::Itertools;
 
@@ -51,7 +53,8 @@ fn compute_strength2(cards: &[u8]) -> u8 {
     }
 }
 
-pub fn generator(input: &str) -> &str {
+pub fn generator(input: &[u8]) -> &str {
+    let input = from_utf8(input).unwrap();
     input
 }
 
@@ -132,7 +135,8 @@ mod tests {
                         T55J5 684\n\
                         KK677 28\n\
                         KTJJT 220\n\
-                        QQQJA 483";
+                        QQQJA 483"
+            .as_bytes();
         assert_eq!(part1(generator(example)), 6440);
         assert_eq!(part2(generator(example)), 5905);
     }

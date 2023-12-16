@@ -1,10 +1,14 @@
+use std::str::from_utf8;
+
 use arrayvec::ArrayVec;
 
 type Int = i64;
 type Line = ArrayVec<Int, 21>;
 type Type = ArrayVec<Line, 200>;
 
-pub fn generator(input: &str) -> Type {
+pub fn generator(input: &[u8]) -> Type {
+    let input = from_utf8(input).unwrap();
+
     input
         .lines()
         .map(|v| v.split_whitespace().map(|n| n.parse().unwrap()).collect())
@@ -72,7 +76,8 @@ mod tests {
     fn test_base() {
         let example = "0 3 6 9 12 15\n\
                             1 3 6 10 15 21\n\
-                            10 13 16 21 30 45";
+                            10 13 16 21 30 45"
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 114);
         assert_eq!(part2(&generator(example)), 2);
     }

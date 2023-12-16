@@ -1,6 +1,10 @@
+use std::str::from_utf8;
+
 type Type<'a> = Vec<&'a str>;
 
-pub fn generator(input: &str) -> Type {
+pub fn generator(input: &[u8]) -> Type {
+    let input = from_utf8(input).unwrap();
+
     input.lines().next().unwrap().split(',').collect()
 }
 
@@ -74,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_base() {
-        let example = "rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7";
+        let example = "rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7".as_bytes();
         assert_eq!(part1(&generator(example)), 1320);
         assert_eq!(part2(&generator(example)), 145);
     }

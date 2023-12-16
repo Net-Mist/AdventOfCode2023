@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::BinaryHeap};
+use std::{cmp::Ordering, collections::BinaryHeap, str::from_utf8};
 
 use ahash::{HashSet, HashSetExt};
 
@@ -28,7 +28,9 @@ impl PartialOrd for State {
     }
 }
 
-pub fn generator(input: &str) -> Input {
+pub fn generator(input: &[u8]) -> Input {
+    let input = from_utf8(input).unwrap();
+
     input.lines().map(|l| l.as_bytes()).collect()
 }
 
@@ -221,7 +223,8 @@ mod tests {
                              4564679986453\n\
                              1224686865563\n\
                              2546548887735\n\
-                             4322674655533\n";
+                             4322674655533\n"
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 102);
         assert_eq!(part2(&generator(example)), 94);
     }

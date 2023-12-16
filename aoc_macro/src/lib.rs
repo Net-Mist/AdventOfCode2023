@@ -93,14 +93,14 @@ pub fn test_parts(item: TokenStream) -> TokenStream {
         #(
         #[test]
         fn #part1_test_fn() {
-            assert_eq!(#part1_fn(&generator(include_str!(#input_file))), #result1);
+            assert_eq!(#part1_fn(&generator(include_bytes!(#input_file))), #result1);
         }
         )*
 
         #(
         #[test]
         fn #part2_test_fn() {
-            assert_eq!(#part2_fn(&generator(include_str!(#input_file))), #result2);
+            assert_eq!(#part2_fn(&generator(include_bytes!(#input_file))), #result2);
         }
     )*
     })
@@ -218,8 +218,8 @@ pub fn main(item: TokenStream) -> TokenStream {
     let input: LitInt = parse_macro_input!(item);
     let input = input.base10_parse::<usize>().unwrap();
 
-    let days = (1..input + 1).collect::<Vec<_>>();
-    let inputs = (1..input + 1)
+    let days = (1..=input).collect::<Vec<_>>();
+    let inputs = (1..=input)
         .map(|v| format!("../inputs/day_{v}.txt"))
         .collect::<Vec<_>>();
     let mod_names = (1..input + 1)
@@ -228,7 +228,7 @@ pub fn main(item: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         // const DAYS: &[&str] = &[#(#days),*];
-        const INPUTS : &[&str] = &[#(include_str!(#inputs)),*];
+        const INPUTS : &[&[u8]] = &[#(include_bytes!(#inputs)),*];
         #(pub mod #mod_names;)* // TODO can probably be removed
 
         fn main() {

@@ -1,7 +1,7 @@
 use ahash::HashSet;
 use arrayvec::ArrayVec;
 use nohash_hasher::{BuildNoHashHasher, NoHashHasher};
-use std::{collections::HashMap, hash::BuildHasherDefault};
+use std::{collections::HashMap, hash::BuildHasherDefault, str::from_utf8};
 
 use num::integer::lcm;
 
@@ -51,7 +51,9 @@ fn perfect_hash(text: &str) -> u32 {
         .unwrap()
 }
 
-pub fn generator(input: &str) -> Type {
+pub fn generator(input: &[u8]) -> Type {
+    let input = from_utf8(input).unwrap();
+
     let (directions, maps) = input.split_once("\n\n").unwrap();
 
     let mut str_to_id: Map = HashMap::with_capacity_and_hasher(766, BuildNoHashHasher::default());
@@ -141,6 +143,7 @@ mod tests {
     use super::*;
 
     use aoc_macro::test_parts;
+    use bitvec::view::AsBits;
     test_parts!(8, 20513, 15995167053923);
 
     #[test]
@@ -149,7 +152,8 @@ mod tests {
             \n\
             AAA = (BBB, BBB)\n\
             BBB = (AAA, ZZZ)\n\
-            ZZZ = (ZZZ, ZZZ)";
+            ZZZ = (ZZZ, ZZZ)"
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 6);
 
         let example = "LR\n\
@@ -161,7 +165,8 @@ mod tests {
                             22B = (22C, 22C)\n\
                             22C = (22Z, 22Z)\n\
                             22Z = (22B, 22B)\n\
-                            XXX = (XXX, XXX)";
+                            XXX = (XXX, XXX)"
+            .as_bytes();
 
         assert_eq!(part2(&generator(example)), 6);
     }

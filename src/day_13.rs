@@ -1,8 +1,12 @@
+use std::str::from_utf8;
+
 use arrayvec::ArrayVec;
 
 type Input<'a> = ArrayVec<ArrayVec<&'a [u8], 17>, 100>;
 
-pub fn generator(input: &str) -> Input {
+pub fn generator(input: &[u8]) -> Input {
+    let input = from_utf8(input).unwrap();
+
     let block = input.split("\n\n");
     block
         .map(|b| b.lines().map(|line| line.as_bytes()).collect())
@@ -100,7 +104,8 @@ mod tests {
                             #####.##.\n\
                             #####.##.\n\
                             ..##..###\n\
-                            #....#..#";
+                            #....#..#"
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 405);
         assert_eq!(part2(&generator(example)), 400);
     }

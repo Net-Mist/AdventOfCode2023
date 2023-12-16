@@ -1,8 +1,12 @@
+// use std::{ops::AddAssign, simd::u64x2};
 
+use std::str::from_utf8;
 
 type Input = Vec<(u128, u128, Vec<u8>, u8)>;
 
-pub fn generator(input: &str) -> Input {
+pub fn generator(input: &[u8]) -> Input {
+    let input = from_utf8(input).unwrap();
+
     input
         .lines()
         .map(|l| {
@@ -92,19 +96,28 @@ fn count_valid(damaged: u128, unknown: u128, count: &[u8], max_n_bits: u8) -> u6
                 s = 0;
 
                 // if not damaged, skip to the next one
-                if damaged >> (n_bits - 1) & 1 == 0 {
-                    s += previous_s;
-                }
+                // let z = u64x2::from(damaged);
 
-                let group = ((damaged_or_unknown >> (n_bits - groupe_size)) as u16).wrapping_add(1);
+                let a = (damaged >> (n_bits - 1)) as u8;
+                let s1 = previous_s * (a & 1 == 0) as u64;
+                // s.add_assign()
+                // s += previous_s * (damaged >> (n_bits - 1) & 1 == 0) as u64;
+                // if damaged >> (n_bits - 1) & 1 == 0 {
+                // s += previous_s;
+                // }
+
+                let group = (damaged_or_unknown >> (n_bits - groupe_size)) as u16;
+                let group = group.wrapping_add(1);
                 let validator = 0b1111111111111111 >> (16 - groupe_size);
                 let is_full_1 = group & validator == 0;
                 let is_not_followed_by_damaged =
                     (damaged << 1) & (1 << (n_bits - groupe_size)) == 0;
-                if is_full_1 && is_not_followed_by_damaged {
-                    s += cache_previous
-                        .get_unchecked((n_bits - groupe_size - additionnal_jump) as usize);
-                }
+                // if is_full_1 && is_not_followed_by_damaged {
+                s += cache_previous
+                    .get_unchecked((n_bits - groupe_size - additionnal_jump) as usize)
+                    * (is_full_1 && is_not_followed_by_damaged) as u64
+                    + s1;
+                // }
 
                 *cache_current.get_unchecked_mut(n_bits as usize) = s;
                 previous_s = s;
@@ -125,22 +138,22 @@ mod tests {
 
     #[test]
     fn test_base() {
-        let example = "???.### 1,1,3";
+        let example = "???.### 1,1,3".as_bytes();
         assert_eq!(part1(&generator(example)), 1);
 
-        let example = ".??..??...?##. 1,1,3";
+        let example = ".??..??...?##. 1,1,3".as_bytes();
         assert_eq!(part1(&generator(example)), 4);
 
-        let example = "?#?#?#?#?#?#?#? 1,3,1,6";
+        let example = "?#?#?#?#?#?#?#? 1,3,1,6".as_bytes();
         assert_eq!(part1(&generator(example)), 1);
 
-        let example = "????.#...#... 4,1,1";
+        let example = "????.#...#... 4,1,1".as_bytes();
         assert_eq!(part1(&generator(example)), 1);
 
-        let example = "????.######..#####. 1,6,5";
+        let example = "????.######..#####. 1,6,5".as_bytes();
         assert_eq!(part1(&generator(example)), 4);
 
-        let example = "?###???????? 3,2,1";
+        let example = "?###???????? 3,2,1".as_bytes();
         assert_eq!(part1(&generator(example)), 10);
 
         let example = "???.### 1,1,3\n\
@@ -148,7 +161,8 @@ mod tests {
                                 ?#?#?#?#?#?#?#? 1,3,1,6\n\
                                 ????.#...#... 4,1,1\n\
                                 ????.######..#####. 1,6,5\n\
-                                ?###???????? 3,2,1";
+                                ?###???????? 3,2,1"
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 21);
         assert_eq!(part2(&generator(example)), 525152);
     }

@@ -1,3 +1,5 @@
+use std::str::from_utf8;
+
 type Int = u64;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
@@ -20,7 +22,8 @@ impl FromIterator<Int> for Map {
 
 type Input = (Vec<Int>, Vec<Vec<Map>>);
 
-pub fn generator(input: &str) -> Input {
+pub fn generator(input: &[u8]) -> Input {
+    let input = from_utf8(input).unwrap();
     let mut blocks = input.split("\n\n");
     let seeds = blocks
         .next()
@@ -143,7 +146,8 @@ mod tests {
             \n\
             humidity-to-location map:\n\
             60 56 37\n\
-            56 93 4";
+            56 93 4"
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 35);
         assert_eq!(part2(&generator(example)), 46);
     }

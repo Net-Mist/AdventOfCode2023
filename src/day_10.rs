@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::from_utf8};
 
 use ahash::HashSet;
 use arrayvec::ArrayVec;
@@ -64,7 +64,9 @@ type Map = ArrayVec<ArrayVec<Pipe, MAP_BORDER>, MAP_BORDER>;
 
 type Type = ((u8, u8), Map);
 
-pub fn generator(input: &str) -> Type {
+pub fn generator(input: &[u8]) -> Type {
+    let input = from_utf8(input).unwrap();
+
     let map = input
         .lines()
         .map(|l| l.bytes().map(Pipe::from).collect())
@@ -208,7 +210,8 @@ mod tests {
                              .F-7.\n\
                              .S.|.\n\
                              .L-J.\n\
-                             .....";
+                             ....."
+            .as_bytes();
         assert_eq!(part1(&generator(example)), 4);
 
         let example = "..........\n\
@@ -219,7 +222,8 @@ mod tests {
                             .|L-7F-J|.\n\
                             .|..||..|.\n\
                             .L--JL--J.\n\
-                            ..........";
+                            .........."
+            .as_bytes();
         assert_eq!(part2(&generator(example)), 4);
     }
 }
