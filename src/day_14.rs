@@ -1,5 +1,5 @@
 use ahash::{HashMap, HashMapExt};
-use aoc_macro::p;
+
 use arrayvec::ArrayVec;
 
 type Input = ArrayVec<ArrayVec<u8, 100>, 100>;
