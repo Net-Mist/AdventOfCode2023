@@ -1,7 +1,6 @@
-use std::{cmp::Ordering, collections::BinaryHeap, fs::DirEntry};
+use std::{cmp::Ordering, collections::BinaryHeap};
 
 use ahash::{HashSet, HashSetExt};
-use num::{traits::SaturatingSub, Saturating};
 
 type Input<'a> = Vec<&'a [u8]>;
 
@@ -14,7 +13,7 @@ enum Direction {
     None,
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Ord)]
 struct State {
     heat_loss: u64,
     line: usize,
@@ -26,12 +25,6 @@ struct State {
 impl PartialOrd for State {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.heat_loss.cmp(&other.heat_loss).reverse())
-    }
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.heat_loss.cmp(&other.heat_loss).reverse()
     }
 }
 
@@ -122,8 +115,8 @@ pub fn part1(input: &Input) -> u64 {
 pub fn part2(input: &Input) -> u64 {
     let h = input.len();
     let w = input[0].len();
-    let mut queue = BinaryHeap::new();
-    let mut seen = HashSet::new();
+    let mut queue = BinaryHeap::with_capacity(141 * 141 * 4);
+    let mut seen = HashSet::with_capacity(141 * 141 * 4);
     queue.push(State {
         heat_loss: 0,
         line: 0,
@@ -132,13 +125,13 @@ pub fn part2(input: &Input) -> u64 {
         n_direction: 0,
     });
     while let Some(e) = queue.pop() {
-        if seen.contains(&(e.line, e.col, e.direction, e.n_direction)) {
+        if seen.contains(&(e.line, e.col, e.direction)) {
             continue;
         }
         if e.line == h - 1 && e.col == w - 1 {
             return e.heat_loss;
         }
-        seen.insert((e.line, e.col, e.direction, e.n_direction));
+        seen.insert((e.line, e.col, e.direction));
         if e.col <= w - 5 && e.direction != Direction::East && e.direction != Direction::West {
             let mut add_heat: u64 = (1..4)
                 .map(|i| (input[e.line][e.col + i] - b'0') as u64)
@@ -211,38 +204,25 @@ pub fn part2(input: &Input) -> u64 {
 mod tests {
     use super::*;
 
-    // use helper_macro::test_parts;
-    // test_parts!(2, 1698735, 1594785890);
+    use aoc_macro::test_parts;
+    test_parts!(17, 817, 925);
 
     #[test]
     fn test_base() {
-        let example = "2413\n\
-                             3215\n\
-                             3255\n\
-                             ";
-        // assert_eq!(part1(&generator(example)), 1);
-        assert_eq!(part2(&generator(example)), 1);
-        // let example = "2413432311323\n\
-        //                              3215453535623\n\
-        //                              3255245654254\n\
-        //                              3446585845452\n\
-        //                              4546657867536\n\
-        //                              1438598798454\n\
-        //                              4457876987766\n\
-        //                              3637877979653\n\
-        //                              4654967986887\n\
-        //                              4564679986453\n\
-        //                              1224686865563\n\
-        //                              2546548887735\n\
-        //                              4322674655533\n";
-        //         assert_eq!(part1(&generator(example)), 102);
-        //         assert_eq!(part2(&generator(example)), 1);
-        let example = "111111111111\n\
-                            999999999991\n\
-                            999999999991\n\
-                            999999999991\n\
-                            999999999991\n";
-        // assert_eq!(part1(&generator(example)), 102);
-        assert_eq!(part2(&generator(example)), 1);
+        let example = "2413432311323\n\
+                             3215453535623\n\
+                             3255245654254\n\
+                             3446585845452\n\
+                             4546657867536\n\
+                             1438598798454\n\
+                             4457876987766\n\
+                             3637877979653\n\
+                             4654967986887\n\
+                             4564679986453\n\
+                             1224686865563\n\
+                             2546548887735\n\
+                             4322674655533\n";
+        assert_eq!(part1(&generator(example)), 102);
+        assert_eq!(part2(&generator(example)), 94);
     }
 }
