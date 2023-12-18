@@ -166,7 +166,7 @@ pub fn benchmark(item: TokenStream) -> TokenStream {
         // use perfcnt::linux::SoftwareEventType as Software;
         // use perfcnt::linux::PerfCounterBuilderLinux as Builder;
         use aoc::#module_name::*;
-        const DATA: &str = include_str!(#input_data_file);
+        const DATA: &[u8] = include_bytes!(#input_data_file);
 
         fn criterion_benchmark(c: &mut Criterion){ //<Perf>) {
             let input = generator(DATA);

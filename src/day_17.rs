@@ -1,19 +1,17 @@
-use std::{cmp::Ordering, collections::BinaryHeap, str::from_utf8};
-
-use ahash::{HashSet, HashSetExt};
+use std::{cmp::Ordering, collections::BinaryHeap};
 
 type Input<'a> = Vec<&'a [u8]>;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone, Copy)]
 enum Direction {
     North,
-    South,
     East,
-    West,
     None,
+    South,
+    West,
 }
 
-#[derive(PartialEq, Eq, Debug, Ord)]
+#[derive(PartialEq, Eq, Debug)]
 struct State {
     heat_loss: u64,
     line: usize,
@@ -22,23 +20,29 @@ struct State {
     n_direction: u8,
 }
 
+impl Ord for State {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.heat_loss.cmp(&other.heat_loss).reverse()
+    }
+}
+
 impl PartialOrd for State {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.heat_loss.cmp(&other.heat_loss).reverse())
+        Some(self.cmp(other))
     }
 }
 
 pub fn generator(input: &[u8]) -> Input {
-    let input = from_utf8(input).unwrap();
-
-    input.lines().map(|l| l.as_bytes()).collect()
+    input[0..input.len() - 1].split(|b| b == &b'\n').collect()
 }
 
 pub fn part1(input: &Input) -> u64 {
     let h = input.len();
     let w = input[0].len();
     let mut queue = BinaryHeap::new();
-    let mut seen = HashSet::new();
+
+    // 141 ** 2 * 5 * 3 / 8
+    let mut seen = vec![0u8; 37277];
     queue.push(State {
         heat_loss: 0,
         line: 0,
@@ -46,17 +50,19 @@ pub fn part1(input: &Input) -> u64 {
         direction: Direction::South,
         n_direction: 0,
     });
-    while let Some(e) = queue.pop() {
-        if seen.contains(&(e.line, e.col, e.direction, e.n_direction)) {
-            continue;
-        }
+    'out: while let Some(e) = queue.pop() {
         if e.n_direction > 3 {
             continue;
         }
         if e.line == h - 1 && e.col == w - 1 {
             return e.heat_loss;
         }
-        seen.insert((e.line, e.col, e.direction, e.n_direction));
+        let seen_id =
+            ((e.line * 141 + e.col) * 5 + e.direction as usize) * 3 + e.n_direction as usize;
+        if (seen[seen_id / 8] >> (seen_id % 8)) & 1 != 0 {
+            continue 'out;
+        }
+        seen[seen_id / 8] |= 1 << seen_id % 8;
         if e.col <= w - 2 && e.direction != Direction::East {
             queue.push(State {
                 heat_loss: e.heat_loss + (input[e.line][e.col + 1] - b'0') as u64,
@@ -111,14 +117,15 @@ pub fn part1(input: &Input) -> u64 {
         }
     }
 
-    return 0;
+    0
 }
 
 pub fn part2(input: &Input) -> u64 {
     let h = input.len();
     let w = input[0].len();
-    let mut queue = BinaryHeap::with_capacity(141 * 141 * 4);
-    let mut seen = HashSet::with_capacity(141 * 141 * 4);
+    let mut queue = BinaryHeap::with_capacity(141 * 141 * 2);
+    let mut seen = vec![0u8; 7456];
+    // WIP merge direction NS and EW. Only use North and East
     queue.push(State {
         heat_loss: 0,
         line: 0,
@@ -126,81 +133,82 @@ pub fn part2(input: &Input) -> u64 {
         direction: Direction::None,
         n_direction: 0,
     });
-    while let Some(e) = queue.pop() {
-        if seen.contains(&(e.line, e.col, e.direction)) {
-            continue;
-        }
+    'out: while let Some(e) = queue.pop() {
         if e.line == h - 1 && e.col == w - 1 {
             return e.heat_loss;
         }
-        seen.insert((e.line, e.col, e.direction));
-        if e.col <= w - 5 && e.direction != Direction::East && e.direction != Direction::West {
+        let seen_id = (e.line * 141 + e.col) * 3 + e.direction as usize;
+        if (seen[seen_id / 8] >> (seen_id % 8)) & 1 != 0 {
+            continue 'out;
+        }
+        seen[seen_id / 8] |= 1 << seen_id % 8;
+        if e.col <= w - 5 && e.direction != Direction::East {
             let mut add_heat: u64 = (1..4)
                 .map(|i| (input[e.line][e.col + i] - b'0') as u64)
                 .sum();
 
-            for (i, c) in ((e.col + 4)..(e.col + 11).min(w)).enumerate() {
+            for c in (e.col + 4)..(e.col + 11).min(w) {
                 add_heat += (input[e.line][c] - b'0') as u64;
                 queue.push(State {
                     heat_loss: e.heat_loss + add_heat,
                     line: e.line,
                     col: c,
                     direction: Direction::East,
-                    n_direction: i as u8 + 4,
+                    n_direction: 0,
                 });
             }
         }
-        if e.col > 3 && e.direction != Direction::East && e.direction != Direction::West {
+        if e.col > 3 && e.direction != Direction::East {
             let mut add_heat: u64 = (1..4)
                 .map(|i| (input[e.line][e.col - i] - b'0') as u64)
                 .sum();
 
-            for (i, c) in (e.col.saturating_sub(10)..=(e.col - 4)).rev().enumerate() {
+            for c in (e.col.saturating_sub(10)..=(e.col - 4)).rev() {
                 add_heat += (input[e.line][c] - b'0') as u64;
                 queue.push(State {
                     heat_loss: e.heat_loss + add_heat,
                     line: e.line,
                     col: c,
-                    direction: Direction::West,
-                    n_direction: i as u8 + 4,
+                    direction: Direction::East,
+                    n_direction: 0,
                 });
             }
         }
-        if e.line <= h - 5 && e.direction != Direction::North && e.direction != Direction::South {
+        if e.line <= h - 5 && e.direction != Direction::North {
             let mut add_heat: u64 = (1..4)
                 .map(|i| (input[e.line + i][e.col] - b'0') as u64)
                 .sum();
 
-            for (i, c) in ((e.line + 4)..(e.line + 11).min(h)).enumerate() {
-                add_heat += (input[c][e.col] - b'0') as u64;
-                queue.push(State {
-                    heat_loss: e.heat_loss + add_heat,
-                    line: c,
-                    col: e.col,
-                    direction: Direction::South,
-                    n_direction: i as u8 + 4,
-                });
-            }
-        }
-        if e.line > 3 && e.direction != Direction::North && e.direction != Direction::South {
-            let mut add_heat: u64 = (1..4)
-                .map(|i| (input[e.line - i][e.col] - b'0') as u64)
-                .sum();
-
-            for (i, c) in (e.line.saturating_sub(10)..=(e.line - 4)).rev().enumerate() {
+            for c in (e.line + 4)..(e.line + 11).min(h) {
                 add_heat += (input[c][e.col] - b'0') as u64;
                 queue.push(State {
                     heat_loss: e.heat_loss + add_heat,
                     line: c,
                     col: e.col,
                     direction: Direction::North,
-                    n_direction: i as u8 + 4,
+                    n_direction: 0,
+                });
+            }
+        }
+        if e.line > 3 && e.direction != Direction::North {
+            let mut add_heat: u64 = (1..4)
+                .map(|i| (input[e.line - i][e.col] - b'0') as u64)
+                .sum();
+
+            for c in (e.line.saturating_sub(10)..=(e.line - 4)).rev() {
+                add_heat += (input[c][e.col] - b'0') as u64;
+                queue.push(State {
+                    heat_loss: e.heat_loss + add_heat,
+                    line: c,
+                    col: e.col,
+                    direction: Direction::North,
+                    n_direction: 0,
                 });
             }
         }
     }
 
-    return 0;
+    0
 }
 #[cfg(test)]
 mod tests {

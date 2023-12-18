@@ -143,7 +143,7 @@ mod tests {
     use super::*;
 
     use aoc_macro::test_parts;
-    use bitvec::view::AsBits;
+    
     test_parts!(8, 20513, 15995167053923);
 
     #[test]

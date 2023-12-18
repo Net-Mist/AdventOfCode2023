@@ -1,10 +1,10 @@
-use std::str::from_utf8;
+
 
 type Int = u16;
 
 fn str_to_int(s: &[u8]) -> Option<u8> {
     let b = s[0];
-    if (b'0'..=b'9').contains(&b) {
+    if b.is_ascii_digit() {
         return Some(b - b'0');
     }
     if s.len() >= 3 {
@@ -53,8 +53,8 @@ pub fn part1(input: &[u8]) -> Int {
     input
         .split(|b| b == &b'\n')
         .map(|line| {
-            let first = line.iter().find(|v| (b'0'..=b'9').contains(v));
-            let last = line.iter().rev().find(|v| (b'0'..=b'9').contains(v));
+            let first = line.iter().find(|v| v.is_ascii_digit());
+            let last = line.iter().rev().find(|v| v.is_ascii_digit());
 
             if let (Some(first), Some(last)) = (first, last) {
                 ((first - b'0') as Int * 10 + (last - b'0') as Int) as Int

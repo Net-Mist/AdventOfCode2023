@@ -2,17 +2,6 @@ use std::collections::{HashMap, HashSet};
 
 type Map<'a> = Vec<&'a [u8]>;
 
-const ZERO: u8 = 48;
-const NINE: u8 = 57;
-
-fn is_digit(n: u8) -> bool {
-    // Keep this notation as it seems to be slightly faster than clippy proposal
-    // (ZERO..=NINE).contains(&n)
-    // TODO look at ASM code
-    #![allow(clippy::all)]
-    ZERO <= n && NINE >= n
-}
-
 fn check_valid(x: usize, y: usize, map: &Map) -> bool {
     for x_d in 0..3 {
         for y_d in 0..3 {
@@ -22,7 +11,7 @@ fn check_valid(x: usize, y: usize, map: &Map) -> bool {
                 continue;
             }
             let n = map[x][y];
-            if !is_digit(n) && n != b'.' {
+            if !n.is_ascii_digit() && n != b'.' {
                 return true;
             }
         }
@@ -59,9 +48,12 @@ pub fn part1(input: &Map) -> u64 {
         number = 0;
         is_valid_number = false;
         for y in 0..input[0].len() {
-            if is_digit(input[x][y]) {
+            if {
+                let n = input[x][y];
+                n.is_ascii_digit()
+            } {
                 number *= 10;
-                number += (input[x][y] - ZERO) as u64;
+                number += (input[x][y] - b'0') as u64;
                 is_valid_number |= check_valid(x, y, input);
             } else {
                 if is_valid_number {
@@ -86,9 +78,12 @@ pub fn part2_hash(input: &Map) -> u64 {
         number = 0;
         valid_gears = HashSet::new();
         for y in 0..input[0].len() {
-            if is_digit(input[x][y]) {
+            if {
+                let n = input[x][y];
+                n.is_ascii_digit()
+            } {
                 number *= 10;
-                number += (input[x][y] - ZERO) as u64;
+                number += (input[x][y] - b'0') as u64;
                 for g in find_gears(x, y, input) {
                     valid_gears.insert(g);
                 }
@@ -131,29 +126,53 @@ pub fn part2(input: &Map) -> u64 {
 
             // check if 2 numbers are present
             let mut n = 0;
-            if is_digit(input[x][y - 1]) {
+            if {
+                let n = input[x][y - 1];
+                n.is_ascii_digit()
+            } {
                 n += 1;
             }
-            if is_digit(input[x][y + 1]) {
+            if {
+                let n = input[x][y + 1];
+                n.is_ascii_digit()
+            } {
                 n += 1;
             }
-            if is_digit(input[x - 1][y]) {
+            if {
+                let n = input[x - 1][y];
+                n.is_ascii_digit()
+            } {
                 n += 1;
             } else {
-                if is_digit(input[x - 1][y - 1]) {
+                if {
+                    let n = input[x - 1][y - 1];
+                    n.is_ascii_digit()
+                } {
                     n += 1
                 }
-                if is_digit(input[x - 1][y + 1]) {
+                if {
+                    let n = input[x - 1][y + 1];
+                    n.is_ascii_digit()
+                } {
                     n += 1
                 }
             }
-            if is_digit(input[x + 1][y]) {
+            if {
+                let n = input[x + 1][y];
+                n.is_ascii_digit()
+            } {
                 n += 1;
             } else {
-                if is_digit(input[x + 1][y - 1]) {
+                if {
+                    let n = input[x + 1][y - 1];
+                    n.is_ascii_digit()
+                } {
                     n += 1
                 }
-                if is_digit(input[x + 1][y + 1]) {
+                if {
+                    let n = input[x + 1][y + 1];
+                    n.is_ascii_digit()
+                } {
                     n += 1
                 }
             }
@@ -163,29 +182,53 @@ pub fn part2(input: &Map) -> u64 {
 
             // parse the 2 numbers
             let mut p = 1;
-            if is_digit(input[x][y - 1]) {
+            if {
+                let n = input[x][y - 1];
+                n.is_ascii_digit()
+            } {
                 p *= parse_left(input, x, y - 1);
             }
-            if is_digit(input[x][y + 1]) {
+            if {
+                let n = input[x][y + 1];
+                n.is_ascii_digit()
+            } {
                 p *= parse_right(input, x, y + 1);
             }
-            if is_digit(input[x - 1][y]) {
+            if {
+                let n = input[x - 1][y];
+                n.is_ascii_digit()
+            } {
                 p *= parse_left_right(input, x - 1, y);
             } else {
-                if is_digit(input[x - 1][y - 1]) {
+                if {
+                    let n = input[x - 1][y - 1];
+                    n.is_ascii_digit()
+                } {
                     p *= parse_left(input, x - 1, y - 1);
                 }
-                if is_digit(input[x - 1][y + 1]) {
+                if {
+                    let n = input[x - 1][y + 1];
+                    n.is_ascii_digit()
+                } {
                     p *= parse_right(input, x - 1, y + 1);
                 }
             }
-            if is_digit(input[x + 1][y]) {
+            if {
+                let n = input[x + 1][y];
+                n.is_ascii_digit()
+            } {
                 p *= parse_left_right(input, x + 1, y);
             } else {
-                if is_digit(input[x + 1][y - 1]) {
+                if {
+                    let n = input[x + 1][y - 1];
+                    n.is_ascii_digit()
+                } {
                     p *= parse_left(input, x + 1, y - 1);
                 }
-                if is_digit(input[x + 1][y + 1]) {
+                if {
+                    let n = input[x + 1][y + 1];
+                    n.is_ascii_digit()
+                } {
                     p *= parse_right(input, x + 1, y + 1);
                 }
             }
@@ -197,42 +240,63 @@ pub fn part2(input: &Map) -> u64 {
 }
 
 fn parse_left_right(input: &[&[u8]], x: usize, y: usize) -> u64 {
-    match (is_digit(input[x][y - 1]), is_digit(input[x][y + 1])) {
+    match (
+        {
+            let n = input[x][y - 1];
+            n.is_ascii_digit()
+        },
+        {
+            let n = input[x][y + 1];
+            n.is_ascii_digit()
+        },
+    ) {
         (true, true) => parse_left(input, x, y + 1),
         (true, false) => parse_left(input, x, y),
         (false, true) => parse_right(input, x, y),
-        (false, false) => (input[x][y] - ZERO) as u64,
+        (false, false) => (input[x][y] - b'0') as u64,
     }
 }
 
 fn parse_right(input: &[&[u8]], x: usize, y: usize) -> u64 {
-    let mut n = (input[x][y] - ZERO) as u64;
+    let mut n = (input[x][y] - b'0') as u64;
     if y < input[0].len() - 1 {
-        if is_digit(input[x][y + 1]) {
+        if {
+            let n = input[x][y + 1];
+            n.is_ascii_digit()
+        } {
             n *= 10;
-            n += (input[x][y + 1] - ZERO) as u64;
+            n += (input[x][y + 1] - b'0') as u64;
         } else {
             return n;
         }
     }
-    if y < input[0].len() - 2 && is_digit(input[x][y + 2]) {
+    if y < input[0].len() - 2 && {
+        let n = input[x][y + 2];
+        n.is_ascii_digit()
+    } {
         n *= 10;
-        n += (input[x][y + 2] - ZERO) as u64;
+        n += (input[x][y + 2] - b'0') as u64;
     }
     n
 }
 
 fn parse_left(input: &[&[u8]], x: usize, y: usize) -> u64 {
-    let mut n = (input[x][y] - ZERO) as u64;
+    let mut n = (input[x][y] - b'0') as u64;
     if y > 0 {
-        if is_digit(input[x][y - 1]) {
-            n += (input[x][y - 1] - ZERO) as u64 * 10;
+        if {
+            let n = input[x][y - 1];
+            n.is_ascii_digit()
+        } {
+            n += (input[x][y - 1] - b'0') as u64 * 10;
         } else {
             return n;
         }
     }
-    if y > 1 && is_digit(input[x][y - 2]) {
-        n += (input[x][y - 2] - ZERO) as u64 * 100;
+    if y > 1 && {
+        let n = input[x][y - 2];
+        n.is_ascii_digit()
+    } {
+        n += (input[x][y - 2] - b'0') as u64 * 100;
     }
     n
 }

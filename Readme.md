@@ -7,6 +7,8 @@ I tried to have the fastest solution possible by implementing concepts from [The
 ## Things learn
 
 - When size of vector are known, use ArrayVec to prevent Heap allocation
+- at the scale of AoC problems, hashes are slow. Even ahash or noHash. Prefer using vector with known size
+- `cargo-show-asm` is great to investigate ASM code `#[inline(never)]` can be useful.
 
 ## generate all days
 
