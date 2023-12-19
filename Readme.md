@@ -9,6 +9,7 @@ I tried to have the fastest solution possible by implementing concepts from [The
 - When size of vector are known, use ArrayVec to prevent Heap allocation
 - at the scale of AoC problems, hashes are slow. Even ahash or noHash. Prefer using vector with known size
 - `cargo-show-asm` is great to investigate ASM code `#[inline(never)]` can be useful.
+- [Shoelace formula](https://en.wikipedia.org/wiki/Shoelace_formula) and [Pick's theorem](https://en.wikipedia.org/wiki/Pick%27s_theorem)
 
 ## generate all days
 
