@@ -48,10 +48,11 @@ pub fn part1(input: &Map) -> u64 {
         number = 0;
         is_valid_number = false;
         for y in 0..input[0].len() {
-            if {
+            let res = {
                 let n = input[x][y];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 number *= 10;
                 number += (input[x][y] - b'0') as u64;
                 is_valid_number |= check_valid(x, y, input);
@@ -78,10 +79,11 @@ pub fn part2_hash(input: &Map) -> u64 {
         number = 0;
         valid_gears = HashSet::new();
         for y in 0..input[0].len() {
-            if {
+            let res = {
                 let n = input[x][y];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 number *= 10;
                 number += (input[x][y] - b'0') as u64;
                 for g in find_gears(x, y, input) {
@@ -126,53 +128,61 @@ pub fn part2(input: &Map) -> u64 {
 
             // check if 2 numbers are present
             let mut n = 0;
-            if {
+            let res = {
                 let n = input[x][y - 1];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 n += 1;
             }
-            if {
+            let res = {
                 let n = input[x][y + 1];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 n += 1;
             }
-            if {
+            let res = {
                 let n = input[x - 1][y];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 n += 1;
             } else {
-                if {
+                let res = {
                     let n = input[x - 1][y - 1];
                     n.is_ascii_digit()
-                } {
+                };
+                if res {
                     n += 1
                 }
-                if {
+                let res = {
                     let n = input[x - 1][y + 1];
                     n.is_ascii_digit()
-                } {
+                };
+                if res {
                     n += 1
                 }
             }
-            if {
+            let res = {
                 let n = input[x + 1][y];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 n += 1;
             } else {
-                if {
+                let res = {
                     let n = input[x + 1][y - 1];
                     n.is_ascii_digit()
-                } {
+                };
+                if res {
                     n += 1
                 }
-                if {
+                let res = {
                     let n = input[x + 1][y + 1];
                     n.is_ascii_digit()
-                } {
+                };
+                if res {
                     n += 1
                 }
             }
@@ -182,53 +192,61 @@ pub fn part2(input: &Map) -> u64 {
 
             // parse the 2 numbers
             let mut p = 1;
-            if {
+            let res = {
                 let n = input[x][y - 1];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 p *= parse_left(input, x, y - 1);
             }
-            if {
+            let res = {
                 let n = input[x][y + 1];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 p *= parse_right(input, x, y + 1);
             }
-            if {
+            let res = {
                 let n = input[x - 1][y];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 p *= parse_left_right(input, x - 1, y);
             } else {
-                if {
+                let res = {
                     let n = input[x - 1][y - 1];
                     n.is_ascii_digit()
-                } {
+                };
+                if res {
                     p *= parse_left(input, x - 1, y - 1);
                 }
-                if {
+                let res = {
                     let n = input[x - 1][y + 1];
                     n.is_ascii_digit()
-                } {
+                };
+                if res {
                     p *= parse_right(input, x - 1, y + 1);
                 }
             }
-            if {
+            let res = {
                 let n = input[x + 1][y];
                 n.is_ascii_digit()
-            } {
+            };
+            if res {
                 p *= parse_left_right(input, x + 1, y);
             } else {
-                if {
+                let res = {
                     let n = input[x + 1][y - 1];
                     n.is_ascii_digit()
-                } {
+                };
+                if res {
                     p *= parse_left(input, x + 1, y - 1);
                 }
-                if {
+                let res = {
                     let n = input[x + 1][y + 1];
                     n.is_ascii_digit()
-                } {
+                };
+                if res {
                     p *= parse_right(input, x + 1, y + 1);
                 }
             }
@@ -260,10 +278,11 @@ fn parse_left_right(input: &[&[u8]], x: usize, y: usize) -> u64 {
 fn parse_right(input: &[&[u8]], x: usize, y: usize) -> u64 {
     let mut n = (input[x][y] - b'0') as u64;
     if y < input[0].len() - 1 {
-        if {
+        let res = {
             let n = input[x][y + 1];
             n.is_ascii_digit()
-        } {
+        };
+        if res {
             n *= 10;
             n += (input[x][y + 1] - b'0') as u64;
         } else {
@@ -283,10 +302,11 @@ fn parse_right(input: &[&[u8]], x: usize, y: usize) -> u64 {
 fn parse_left(input: &[&[u8]], x: usize, y: usize) -> u64 {
     let mut n = (input[x][y] - b'0') as u64;
     if y > 0 {
-        if {
+        let res = {
             let n = input[x][y - 1];
             n.is_ascii_digit()
-        } {
+        };
+        if res {
             n += (input[x][y - 1] - b'0') as u64 * 10;
         } else {
             return n;

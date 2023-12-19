@@ -62,7 +62,7 @@ pub fn part1(input: &Input) -> u64 {
         if (seen[seen_id / 8] >> (seen_id % 8)) & 1 != 0 {
             continue 'out;
         }
-        seen[seen_id / 8] |= 1 << seen_id % 8;
+        seen[seen_id / 8] |= 1 << (seen_id % 8);
         if e.col <= w - 2 && e.direction != Direction::East {
             queue.push(State {
                 heat_loss: e.heat_loss + (input[e.line][e.col + 1] - b'0') as u64,
@@ -141,7 +141,7 @@ pub fn part2(input: &Input) -> u64 {
         if (seen[seen_id / 8] >> (seen_id % 8)) & 1 != 0 {
             continue 'out;
         }
-        seen[seen_id / 8] |= 1 << seen_id % 8;
+        seen[seen_id / 8] |= 1 << (seen_id % 8);
         if e.col <= w - 5 && e.direction != Direction::East {
             let mut add_heat: u64 = (1..4)
                 .map(|i| (input[e.line][e.col + i] - b'0') as u64)
