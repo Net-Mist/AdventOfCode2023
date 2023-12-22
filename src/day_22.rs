@@ -13,6 +13,7 @@ pub struct Node {
 pub fn generator(input: &[u8]) -> Input {
     // order bricks by increasing Z
     // Fill an array of size 10*10*360 (36K u16)
+    // extract the graph
     let mut map = vec![vec![vec![0; 370]; 10]; 10];
     let mut blocks: Vec<Vec<u16>> = input[0..input.len() - 1]
         .split(|b| b == &b'\n')
@@ -75,24 +76,33 @@ pub fn part1(graph: &Input) -> usize {
         .count()
 }
 
-pub fn part2(input: &Input) -> usize {
+pub fn part2(input: &Input) -> u32 {
     let mut s = 0;
-    for i in 0..input.len() {
-        let mut removed_id = HashSet::new();
-        let mut removed = VecDeque::new();
-        removed.push_back(i as u16);
-        removed_id.insert(i as u16);
+    let mut removed = VecDeque::with_capacity(30);
+    for j in 0..input.len() {
+        removed.clear();
+        let mut removed_ids = [0u64; 23];
+
+        removed.push_back(j as u16);
+        removed_ids[j / 64] |= 1 << j % 64;
         while let Some(i) = removed.pop_front() {
-            let node = &input[i as usize];
-            for node_id in node.support.iter() {
-                let node = &input[*node_id as usize];
-                if node.supported_by.difference(&removed_id).count() == 0 {
-                    removed_id.insert(*node_id as u16);
+            input[i as usize].support.iter().for_each(|node_id| {
+                if input[*node_id as usize]
+                    .supported_by
+                    .iter()
+                    .all(|i| (removed_ids[*i as usize / 64] >> i) & 1 == 1)
+                {
+                    removed_ids[(*node_id as usize) / 64] |= 1 << (*node_id) % 64;
                     removed.push_back(*node_id as u16);
                 }
-            }
+            });
         }
-        s += removed_id.len() - 1;
+
+        s += removed_ids
+            .iter()
+            .map(|i| i.count_ones() as u32)
+            .sum::<u32>()
+            - 1;
     }
     s
 }
