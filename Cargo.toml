@@ -12,7 +12,7 @@ debug = true
 debug = true
 # lto = "fat"
 # codegen-units = 1
-# panic = "abort"
+panic = "abort"
 
 
 [dependencies]
@@ -32,6 +32,9 @@ smallvec = "1.11.2"
 nohash-hasher = "0.2.0"
 cached = "0.46.1"
 tqdm = "0.6.0"
+ndarray = "0.15.6"
+ndarray-linalg = { version="0.16.0", features = ["intel-mkl"]}
+rustworkx-core = "0.13.2"
 # perfcnt = "0.8.0"
 # rayon = "1.7.0"
 

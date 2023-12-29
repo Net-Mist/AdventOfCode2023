@@ -75,24 +75,22 @@ fn follow_until_intersect(
 
         let possible_directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
             .into_iter()
-            .filter_map(|possible_direction| {
-                if possible_direction.0 == direction.0 * -1
-                    && possible_direction.1 == direction.1 * -1
-                {
-                    return None;
+            .filter(|possible_direction| {
+                if possible_direction.0 == -direction.0 && possible_direction.1 == -direction.1 {
+                    return false;
                 }
                 if map[(position.0 + possible_direction.0 as i16) as usize]
                     [(position.1 + possible_direction.1 as i16) as usize]
                     != b'#'
                 {
-                    return Some(possible_direction);
+                    return true;
                 }
-                None
+                false
             })
             .collect::<ArrayVec<_, 3>>();
         distance += 1;
 
-        if possible_directions.len() == 0 {
+        if possible_directions.is_empty() {
             return None;
         }
         if possible_directions.len() > 1 {
@@ -103,8 +101,8 @@ fn follow_until_intersect(
             ));
         }
 
-        position.0 = position.0 + possible_directions[0].0 as i16;
-        position.1 = position.1 + possible_directions[0].1 as i16;
+        position.0 += possible_directions[0].0 as i16;
+        position.1 += possible_directions[0].1 as i16;
         direction = possible_directions[0];
     }
 }
@@ -133,11 +131,7 @@ pub fn generator(input: &[u8]) -> Graph {
         if let Some((position, possible_directions, distance)) =
             follow_until_intersect(&map, current_position, direction)
         {
-            if position_to_node.contains_key(&position) {
-                // add the connection between node we started from and this node
-                let current_node_id = position_to_node.get(&position).unwrap();
-                graph.connect(node_id, *current_node_id, distance);
-            } else {
+            if let std::collections::hash_map::Entry::Vacant(e) = position_to_node.entry(position) {
                 // create new node, add known connection, and other in the list of stuff to explore
                 let current_node_id = graph.len();
                 graph.create_node(position);
@@ -145,7 +139,11 @@ pub fn generator(input: &[u8]) -> Graph {
                 for direction in possible_directions {
                     node_to_process.push_back((current_node_id, direction));
                 }
-                position_to_node.insert(position, current_node_id);
+                e.insert(current_node_id);
+            } else {
+                // add the connection between node we started from and this node
+                let current_node_id = position_to_node.get(&position).unwrap();
+                graph.connect(node_id, *current_node_id, distance);
             }
         }
     }
@@ -169,7 +167,7 @@ fn distance(input: &Graph, cache: &mut [u16], id: u8) -> u16 {
         .max()
         .unwrap_or(1);
     cache[id as usize] = out;
-    return out;
+    out
 }
 
 pub fn part2(input: &Graph) -> u16 {
@@ -183,7 +181,7 @@ pub fn part2(input: &Graph) -> u16 {
         let node = &input.nodes[node_id as usize];
         for n in node.connected.iter().chain(node.from.iter()) {
             if (marker >> n.0) & 1 == 0 {
-                explo_state.push((n.0, marker | 1 << n.0, distance + n.1 as u16));
+                explo_state.push((n.0, marker | 1 << n.0, distance + n.1));
             }
         }
     }

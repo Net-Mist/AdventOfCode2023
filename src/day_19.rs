@@ -185,7 +185,7 @@ mod tests {
     use super::*;
 
     use aoc_macro::test_parts;
-    test_parts!(19, 418499, 123331556462603);
+    test_parts!(19, 418498, 123331556462603);
 
     #[test]
     fn test_base() {

@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use ahash::{HashMap, HashMapExt};
 use arrayvec::ArrayVec;
 
-const N_NODE: usize = 58;
+const N_NODE: usize = 59;
 
 #[derive(Debug, Clone)]
 struct FlipFlop {
@@ -29,7 +29,7 @@ pub struct Graph {
     parents: ArrayVec<Vec<usize>, N_NODE>,
     children: ArrayVec<Vec<usize>, N_NODE>,
     broadcaster_id: usize,
-    dr_id: usize,
+    rx_id: usize,
 }
 
 struct GraphBuilder<'a> {
@@ -45,7 +45,7 @@ impl Graph {
             parents: ArrayVec::new(),
             children: ArrayVec::new(),
             broadcaster_id: 0,
-            dr_id: 0,
+            rx_id: 0,
         }
     }
 }
@@ -99,7 +99,7 @@ pub fn generator(input: &[u8]) -> Graph {
         };
 
         let node_ids = line
-            .split(|b| !(b'a'..b'z').contains(b))
+            .split(|b| !b.is_ascii_lowercase())
             .filter(|i| !i.is_empty())
             .map(|name| graph_builder.get_or_create_node_id(name))
             .collect::<Vec<usize>>();
@@ -117,13 +117,12 @@ pub fn generator(input: &[u8]) -> Graph {
         }
     }
 
-    let k = &[b'd', b'r'][..];
-    graph_builder.graph.dr_id = graph_builder.name_to_id.get(k).unwrap().to_owned();
+    let k = &[b'r', b'x'][..];
+    graph_builder.graph.rx_id = graph_builder.name_to_id.get(k).unwrap().to_owned();
     graph_builder.graph
 }
 
 pub fn part1(input: &Graph) -> usize {
-    dbg!(input);
     let mut graph = input.to_owned();
     let mut event_queue = VecDeque::new();
 
@@ -145,7 +144,7 @@ pub fn part1(input: &Graph) -> usize {
                 if !event_type {
                     *state = !*state;
                     for c in graph.children[event_to].iter() {
-                        event_queue.push_back((event_to, *c, state.clone()));
+                        event_queue.push_back((event_to, *c, *state));
                     }
                 }
             }
@@ -162,37 +161,46 @@ pub fn part1(input: &Graph) -> usize {
 }
 
 pub fn part2(input: &Graph) -> usize {
-    // let mut graph = input.to_owned();
-    // let mut event_queue = VecDeque::new();
+    let mut graph = input.to_owned();
+    let mut event_queue = VecDeque::new();
 
-    // for j in 0..5000 {
-    //     for i in graph.connected_to_broadcaster.iter() {
-    //         event_queue.push_back((0, *i, false));
-    //     }
-    //     while let Some((event_from, event_to, event_type)) = event_queue.pop_front() {
-    //         if event_to == graph.dr_id {
-    //             // if event_type {
-    //             // dbg!((j + 1, event_from));
-    //             // }
-    //         }
-    //         if let Node::FlipFlop(FlipFlop { state, children }) = &mut graph.nodes[event_to] {
-    //             if !event_type {
-    //                 *state = !*state;
-    //                 for c in children.iter() {
-    //                     event_queue.push_back((event_to, *c, state.clone()));
-    //                 }
-    //             }
-    //         }
-    //         if let Node::Conj(Conj { inputs, children }) = &mut graph.nodes[event_to] {
-    //             inputs.insert(event_from, event_type);
-    //             let s = !inputs.values().all(|v| *v);
-    //             for c in children.iter() {
-    //                 event_queue.push_back((event_to, *c, s));
-    //             }
-    //         }
-    //     }
-    // }
-    return 0;
+    let rx_parent_ids = &graph.parents[graph.rx_id];
+    assert!(rx_parent_ids.len() == 1);
+    let rx_parent_id = rx_parent_ids[0];
+
+    let mut out = 1;
+    let mut n_out = 0;
+
+    for j in 0..5000 {
+        for i in graph.children[graph.broadcaster_id].iter() {
+            event_queue.push_back((graph.broadcaster_id, *i, false));
+        }
+        while let Some((event_from, event_to, event_type)) = event_queue.pop_front() {
+            if event_to == rx_parent_id && event_type {
+                out *= j + 1;
+                n_out += 1;
+                if n_out == 4 {
+                    return out;
+                }
+            }
+            if let Node::FlipFlop(FlipFlop { state }) = &mut graph.nodes[event_to] {
+                if !event_type {
+                    *state = !*state;
+                    for c in graph.children[event_to].iter() {
+                        event_queue.push_back((event_to, *c, *state));
+                    }
+                }
+            }
+            if let Node::Conj(Conj { inputs }) = &mut graph.nodes[event_to] {
+                inputs.insert(event_from, event_type);
+                let s = !inputs.values().all(|v| *v);
+                for c in graph.children[event_to].iter() {
+                    event_queue.push_back((event_to, *c, s));
+                }
+            }
+        }
+    }
+    out
 }
 
 #[cfg(test)]
@@ -208,7 +216,7 @@ mod tests {
                             %a -> inv, con\n\
                             &inv -> b\n\
                             %b -> con\n\
-                            &con -> dr\n"
+                            &con -> rx\n"
             .as_bytes();
         assert_eq!(part1(&generator(example)), 11687500);
     }

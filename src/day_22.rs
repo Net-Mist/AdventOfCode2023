@@ -1,13 +1,14 @@
 use std::{collections::VecDeque, str::from_utf8};
 
 use ahash::{HashSet, HashSetExt};
+use arrayvec::ArrayVec;
 
-type Input = Vec<Node>;
+type Input = ArrayVec<Node, 1471>;
 
 #[derive(Debug)]
 pub struct Node {
-    supported_by: HashSet<u16>,
-    support: HashSet<u16>,
+    supported_by: ArrayVec<u16, 3>,
+    support: ArrayVec<u16, 4>,
 }
 
 pub fn generator(input: &[u8]) -> Input {
@@ -25,7 +26,7 @@ pub fn generator(input: &[u8]) -> Input {
         .collect();
     blocks.sort_unstable_by(|a, b| a[2].partial_cmp(&b[2]).unwrap());
 
-    let mut graph: Vec<Node> = Vec::with_capacity(blocks.len());
+    let mut graph: ArrayVec<Node, 1471> = ArrayVec::new();
 
     for (block_id, block) in blocks.into_iter().enumerate() {
         let mut delta = 1usize;
@@ -55,16 +56,17 @@ pub fn generator(input: &[u8]) -> Input {
             }
         }
         for id in supported_by.iter() {
-            graph[*id as usize].support.insert(block_id as u16);
+            graph[*id as usize].support.push(block_id as u16);
         }
         graph.push(Node {
-            supported_by,
-            support: HashSet::new(),
+            supported_by: supported_by.into_iter().collect(),
+            support: ArrayVec::new(),
         });
     }
     graph
 }
 
+#[inline(never)]
 pub fn part1(graph: &Input) -> usize {
     graph
         .iter()
@@ -76,6 +78,7 @@ pub fn part1(graph: &Input) -> usize {
         .count()
 }
 
+#[inline(never)]
 pub fn part2(input: &Input) -> u32 {
     let mut s = 0;
     let mut removed = VecDeque::with_capacity(30);
@@ -84,23 +87,23 @@ pub fn part2(input: &Input) -> u32 {
         let mut removed_ids = [0u64; 23];
 
         removed.push_back(j as u16);
-        removed_ids[j / 64] |= 1 << j % 64;
+        removed_ids[j / 64] |= 1 << (j % 64);
         while let Some(i) = removed.pop_front() {
             input[i as usize].support.iter().for_each(|node_id| {
                 if input[*node_id as usize]
                     .supported_by
                     .iter()
-                    .all(|i| (removed_ids[*i as usize / 64] >> i) & 1 == 1)
+                    .all(|i| (removed_ids[*i as usize / 64] >> (i % 64)) & 1 == 1)
                 {
-                    removed_ids[(*node_id as usize) / 64] |= 1 << (*node_id) % 64;
-                    removed.push_back(*node_id as u16);
+                    removed_ids[(*node_id as usize) / 64] |= 1 << ((*node_id) % 64);
+                    removed.push_back(*node_id);
                 }
             });
         }
 
         s += removed_ids
             .iter()
-            .map(|i| i.count_ones() as u32)
+            .map(|i| i.count_ones())
             .sum::<u32>()
             - 1;
     }
