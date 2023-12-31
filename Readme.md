@@ -7,20 +7,16 @@ I tried to have the fastest solution possible by implementing concepts from [The
 ## Things learn
 
 - When size of vector are known, use ArrayVec to prevent Heap allocation
-- at the scale of AoC problems, hashes are slow. Even ahash or noHash. Prefer using vector with known size
-- `cargo-show-asm` is great to investigate ASM code `#[inline(never)]` can be useful.
-- [Shoelace formula](https://en.wikipedia.org/wiki/Shoelace_formula) and [Pick's theorem](https://en.wikipedia.org/wiki/Pick%27s_theorem)
+- at the scale of AoC problems, hashes are slow. Even ahash or noHash. Prefer using bitwise operations if possible
+- `cargo-show-asm` is great to investigate ASM code. A function can be marked as `#[inline(never)]` if it doesn't appear in the assembly.
+- [Shoelace formula](https://en.wikipedia.org/wiki/Shoelace_formula) and [Pick's theorem](https://en.wikipedia.org/wiki/Pick%27s_theorem) are great tools when computing area of big polygons
 
-## generate all days
+## Profiling
 
-```sh
-for i in {4..25}; do
-  cp template/day_N.rs src/day_$i.rs
-done
-```
+On linux, `perf` is a great tool. It can be run with:
 
 ```sh
-for i in {4..25}; do
-  touch inputs/day_$i.txt
-done
+sudo perf record --call-graph dwarf -F max target/release/aoc -d 21
 ```
+
+Then `hotspot` can be used to visualize the results.
