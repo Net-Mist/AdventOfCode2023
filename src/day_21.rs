@@ -1,5 +1,3 @@
-use ahash::{HashSet, HashSetExt};
-
 type Input = (Vec<Vec<bool>>, (u8, u8));
 
 const N_STEPS: usize = 26501365;
@@ -31,13 +29,17 @@ pub fn generator(input: &[u8]) -> Input {
 
 pub fn part1(input: &Input) -> usize {
     let (map, position) = input;
+    let mut map = map.clone();
     let h = map.len() as u8;
     let w = map[0].len() as u8;
-    let mut previous_positions = HashSet::new();
-    let mut new_positions = HashSet::new();
+    let mut previous_positions = Vec::with_capacity(h as usize * w as usize);
+    let mut new_positions = Vec::with_capacity(h as usize * w as usize);
 
-    previous_positions.insert(position.to_owned());
+    previous_positions.push(position.to_owned());
     let directions = [(1, 0), (0, 1), (255, 0), (0, 255)];
+    let mut previous_n = 0;
+    let mut previous_previous_n;
+    let mut n = 0;
 
     for _ in 0..64 {
         for position in previous_positions.iter() {
@@ -50,14 +52,18 @@ pub fn part1(input: &Input) -> usize {
                     continue;
                 }
                 if map[new_position.0 as usize][new_position.1 as usize] {
-                    new_positions.insert(new_position);
+                    new_positions.push(new_position);
+                    map[new_position.0 as usize][new_position.1 as usize] = false;
                 }
             }
         }
-        (previous_positions, _) = (new_positions, previous_positions);
-        new_positions = HashSet::new();
+        (previous_positions, new_positions) = (new_positions, previous_positions);
+        new_positions.clear();
+        previous_previous_n = previous_n;
+        previous_n = n;
+        n = previous_positions.len() + previous_previous_n;
     }
-    previous_positions.len()
+    n
 }
 
 pub fn part2(input: &Input) -> usize {
@@ -124,19 +130,20 @@ pub fn part2(input: &Input) -> usize {
 }
 
 fn compute_n_position_until_cycle(map: &Vec<Vec<bool>>, init_position: &(u8, u8)) -> Vec<usize> {
+    let mut map = map.clone();
     let h = map.len() as u8;
     let w = map[0].len() as u8;
-    let mut previous_positions = HashSet::new();
-    let mut new_positions = HashSet::new();
+    let mut previous_positions = Vec::with_capacity(h as usize * w as usize);
+    let mut new_positions = Vec::with_capacity(h as usize * w as usize);
 
-    previous_positions.insert(init_position.to_owned());
+    previous_positions.push(init_position.to_owned());
     let directions = [(1, 0), (0, 1), (255, 0), (0, 255)];
 
     let mut previous_n = 0;
     let mut previous_previous_n;
     let mut n = 0;
     let mut ns = vec![1];
-    for _i in 0..N_STEPS {
+    for _ in 0..N_STEPS {
         for position in previous_positions.iter() {
             for direction in directions {
                 let new_position = (
@@ -147,15 +154,16 @@ fn compute_n_position_until_cycle(map: &Vec<Vec<bool>>, init_position: &(u8, u8)
                     continue;
                 }
                 if map[new_position.0 as usize][new_position.1 as usize] {
-                    new_positions.insert(new_position);
+                    map[new_position.0 as usize][new_position.1 as usize] = false;
+                    new_positions.push(new_position);
                 }
             }
         }
-        (previous_positions, _) = (new_positions, previous_positions);
-        new_positions = HashSet::new();
+        (previous_positions, new_positions) = (new_positions, previous_positions);
+        new_positions.clear();
         previous_previous_n = previous_n;
         previous_n = n;
-        n = previous_positions.len();
+        n = previous_positions.len() + previous_previous_n;
         ns.push(n);
         if previous_previous_n == n {
             break;
@@ -187,13 +195,4 @@ mod tests {
             .as_bytes();
         assert_eq!(part1(&generator(example)), 42);
     }
-
-    // #[test]
-    // fn test_basic() {
-    //     let example = "...\n\
-    //                           ...\n\
-    //                           ...\n"
-    //         .as_bytes();
-    //     assert_eq!(part2(&generator(example)), 100);
-    // }
 }
