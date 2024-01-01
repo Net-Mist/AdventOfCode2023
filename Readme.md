@@ -21,3 +21,5 @@ sudo perf record --call-graph dwarf -F max target/release/aoc -d 21
 ```
 
 Then `hotspot` can be used to visualize the results.
+
+For comparing solutions, microbenchmarks have been setup. You can run them with `cargo bench`.

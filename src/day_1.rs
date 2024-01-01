@@ -1,5 +1,3 @@
-
-
 type Int = u16;
 
 fn str_to_int(s: &[u8]) -> Option<u8> {
@@ -49,6 +47,7 @@ fn str_to_int(s: &[u8]) -> Option<u8> {
 pub fn generator(input: &[u8]) -> &[u8] {
     input
 }
+
 pub fn part1(input: &[u8]) -> Int {
     input
         .split(|b| b == &b'\n')
