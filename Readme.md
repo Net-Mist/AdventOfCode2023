@@ -168,8 +168,8 @@ Overall runtime (558.05ms)
 ## Things learn
 
 - When size of vector are known, use ArrayVec to prevent Heap allocation.
-- at the scale of AoC problems, hashes are slow. Even ahash or noHash. Prefer using bitwise operations if possible.
-- Created nested vect, like `vec![vec![false; W]; H]` can be slow because of memory allocations. Prefer `vec![false; W * H]` or bitwise version like `vec![0u64; (W * H + 63)/64]` (`+63` is for rounding up).
+- At the scale of AoC problems, hashmaps and hashsets are slow. Even using ahash or noHash. Prefer using bitwise operations and vect if possible.
+- Creating nested vect, like `vec![vec![false; W]; H]` can be slow because of memory allocations. Prefer `vec![false; W * H]` or bitwise version like `vec![0u64; (W * H + 63)/64]` (`+63` is for rounding up).
 - `cargo-show-asm` is great to investigate ASM code. A function can be marked as `#[inline(never)]` if it doesn't appear in the assembly.
 - [Shoelace formula](https://en.wikipedia.org/wiki/Shoelace_formula) and [Pick's theorem](https://en.wikipedia.org/wiki/Pick%27s_theorem) are great tools when computing area of big polygons.
 

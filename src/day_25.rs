@@ -5,7 +5,6 @@ use rustworkx_core::petgraph::graphmap::UnGraphMap;
 use rustworkx_core::connectivity::stoer_wagner_min_cut;
 
 type Input = Vec<(usize, usize)>;
-// type Input<'a> = Vec<(&'a str, &'a str)>;
 
 pub fn generator(input: &[u8]) -> Input {
     let mut next_id = 0usize;
